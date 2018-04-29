@@ -10,7 +10,8 @@ namespace Platformer
 {
     public class Sprite
     {
-        public Texture2D texture;
+        public Texture2D forward;
+        public Texture2D backward;
         public Vector2 position;
         public Color color;
         /*
@@ -18,9 +19,10 @@ namespace Platformer
         Color invertedColor;
         Color originalColor;*/
 
-        public Sprite(Texture2D texture, Vector2 position, Color color)
+        public Sprite(Texture2D forward, Texture2D backward, Vector2 position, Color color)
         {
-            this.texture = texture;
+            this.forward = forward;
+            this.backward = backward;
             this.position = position;
             this.color = color;
             //originalColor = color;
@@ -29,7 +31,7 @@ namespace Platformer
 
         public virtual Rectangle hitbox
         {
-            get { return new Rectangle((int)position.X, (int)position.Y, texture.Width, texture.Height); }
+            get { return new Rectangle((int)position.X, (int)position.Y, forward.Width, forward.Height); }
         }
 
         /*public void InvertColor()
@@ -41,9 +43,16 @@ namespace Platformer
             }
         }*/
 
-        public virtual void draw(SpriteBatch spriteBatch)
+        public virtual void draw(SpriteBatch spriteBatch, int speedX)
         {
-            spriteBatch.Draw(texture, position, color);
+            if (speedX >= 0)
+            {
+                spriteBatch.Draw(forward, position, color);
+            }
+            else if (speedX < 0)
+            {
+                spriteBatch.Draw(backward, position, color);
+            }
         }
     }
 }

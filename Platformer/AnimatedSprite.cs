@@ -15,7 +15,7 @@ namespace Platformer
         public int currentframe;
         public int framedelay = 0;
         public int framedelayamount = 5;
-        public AnimatedSprite(Texture2D texture, Vector2 position, Color color, List<Rectangle> frames, Vector4 hitboxoffset, int framedelayamount) : base(texture, position, color)
+        public AnimatedSprite(Texture2D forward, Texture2D backward, Vector2 position, Color color, List<Rectangle> frames, Vector4 hitboxoffset, int framedelayamount) : base(forward, backward, position, color)
         {
             this.frames = frames;
             this.hitboxoffset = hitboxoffset;
@@ -27,9 +27,16 @@ namespace Platformer
             get { return new Rectangle((int)position.X + (int)hitboxoffset.X, (int)position.Y + (int)hitboxoffset.Y, frames[currentframe].Width - (int)hitboxoffset.X - (int)hitboxoffset.Z, frames[currentframe].Height - (int)hitboxoffset.Y - (int)hitboxoffset.W); }
         }
 
-        public override void draw(SpriteBatch spriteBatch)
+        public override void draw(SpriteBatch spriteBatch, int speedX)
         {
-            spriteBatch.Draw(texture, position, frames[currentframe], color);
+            if (speedX >= 0)
+            {
+                spriteBatch.Draw(forward, position, frames[currentframe], color);
+            }
+            else if (speedX < 0)
+            {
+                spriteBatch.Draw(backward, position, frames[currentframe], color);
+            }
         }
     }
 }

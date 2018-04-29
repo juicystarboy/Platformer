@@ -13,8 +13,10 @@ namespace Platformer
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         Texture2D charspritesheet;
+        Texture2D charspritesheetbackward;
         List<Rectangle> charframes;
         Character character;
+        SpriteFont font;
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -45,6 +47,7 @@ namespace Platformer
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
             charspritesheet = Content.Load<Texture2D>("stick figure sprite sheet 50%");
+            charspritesheetbackward = Content.Load<Texture2D>("stick figure sprite sheet 50% backward");
             {
                 charframes = new List<Rectangle>();
                 //for(int i = 0; i < 70; i++)
@@ -58,7 +61,8 @@ namespace Platformer
                     }
                 }
             }
-            character = new Character(charspritesheet, new Vector2(0, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, new Vector4(0, 0, 0, 0), 0);
+            font = Content.Load<SpriteFont>("Font");
+            character = new Character(charspritesheet, charspritesheetbackward, new Vector2(0, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, new Vector4(0, 0, 0, 0), 0);
             // TODO: use this.Content to load your game content here
         }
 
@@ -82,7 +86,7 @@ namespace Platformer
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-            character.speedX = 0;
+            //character.speedX = 0;
             character.Update(gameTime);
             // TODO: Add your update logic here
 
@@ -97,7 +101,8 @@ namespace Platformer
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin();
-            character.draw(spriteBatch);
+            character.draw(spriteBatch, character.speedX);
+            spriteBatch.DrawString(font, character.speedX.ToString(), new Vector2(0, 0), Color.White);
             // TODO: Add your drawing code here
             spriteBatch.End();
             base.Draw(gameTime);

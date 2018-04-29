@@ -17,7 +17,7 @@ namespace Platformer
         Vector4 hitboxoffset;
         public int speedX = 0;
 
-        public Character(Texture2D texture, Vector2 position, Color color, List<Rectangle> frames, Vector4 hitboxoffset, int framedelayamount) : base(texture, position, color, frames, hitboxoffset, framedelayamount)
+        public Character(Texture2D forward, Texture2D backward, Vector2 position, Color color, List<Rectangle> frames, Vector4 hitboxoffset, int framedelayamount) : base(forward, backward, position, color, frames, hitboxoffset, framedelayamount)
         {
             this.hitboxoffset = hitboxoffset;
             initialY = (int)position.Y;
@@ -35,6 +35,41 @@ namespace Platformer
             KeyboardState ks = Keyboard.GetState();
 
             elapsedGameTime += gameTime.ElapsedGameTime;
+
+            if (ks.IsKeyDown(Keys.D))
+            {
+                if(speedX < 10)
+                {
+                    speedX++;
+                }
+                else
+                {
+                    speedX = 10;
+                }
+            }
+            else if (ks.IsKeyDown(Keys.A))
+            {
+                if (speedX > -10)
+                {
+                    speedX--;
+                }
+                else
+                {
+                    speedX = -10;
+                }
+            }
+            else if(speedX < 0)
+            {
+                speedX++;
+            }
+            else if(speedX >0)
+            {
+                speedX--;
+            }
+            else
+            {
+                speedX = 0;
+            }
 
             if (ks.IsKeyDown(Keys.Space))
             {
