@@ -1,6 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.Collections.Generic;
 
 namespace Platformer
 {
@@ -11,13 +12,17 @@ namespace Platformer
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-
+        Texture2D charspritesheet;
+        List<Rectangle> charframes;
+        Character character;
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
+            graphics.PreferredBackBufferHeight = 200;
+            graphics.PreferredBackBufferWidth = 1920;
             Content.RootDirectory = "Content";
         }
-
+        
         /// <summary>
         /// Allows the game to perform any initialization it needs to before starting to run.
         /// This is where it can query for any required services and load any non-graphic
@@ -30,7 +35,7 @@ namespace Platformer
 
             base.Initialize();
         }
-
+        
         /// <summary>
         /// LoadContent will be called once per game and is the place to load
         /// all of your content.
@@ -39,11 +44,27 @@ namespace Platformer
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-
+            charspritesheet = Content.Load<Texture2D>("stick figure sprite sheet 50%");
+            {
+                charframes = new List<Rectangle>();
+                //for(int i = 0; i < 70; i++)
+                {
+                    for(int r = 0; r < 8; r++)
+                    {
+                        for(int c = 0; c < 9; c++)
+                        {
+                            charframes.Add(new Rectangle(c * charspritesheet.Width / 9, r * charspritesheet.Height / 8, charspritesheet.Width / 9, charspritesheet.Height / 8));
+                        }
+                    }
+                }
+            }
+            character = new Character(charspritesheet, new Vector2(0, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, new Vector4(0, 0, 0, 0), 0);
             // TODO: use this.Content to load your game content here
         }
 
-        /// <summary>
+        
+
+        /// <summary>                     
         /// UnloadContent will be called once per game and is the place to unload
         /// game-specific content.
         /// </summary>
@@ -61,7 +82,8 @@ namespace Platformer
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-
+            character.speedX = 0;
+            character.Update(gameTime);
             // TODO: Add your update logic here
 
             base.Update(gameTime);
@@ -74,9 +96,10 @@ namespace Platformer
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-
+            spriteBatch.Begin();
+            character.draw(spriteBatch);
             // TODO: Add your drawing code here
-
+            spriteBatch.End();
             base.Draw(gameTime);
         }
     }
