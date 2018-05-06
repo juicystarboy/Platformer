@@ -20,7 +20,7 @@ namespace Platformer
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferHeight = 200;
+            graphics.PreferredBackBufferHeight = 1080;
             graphics.PreferredBackBufferWidth = 1920;
             Content.RootDirectory = "Content";
         }
@@ -62,7 +62,7 @@ namespace Platformer
                 }
             }
             font = Content.Load<SpriteFont>("Font");
-            character = new Character(charspritesheet, charspritesheetbackward, new Vector2(0, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, new Vector4(0, 0, 0, 0), 0);
+            character = new Character(charspritesheet, charspritesheetbackward, new Vector2(100, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, new Vector4(0, 0, 0, 0), 0);
             // TODO: use this.Content to load your game content here
         }
 
