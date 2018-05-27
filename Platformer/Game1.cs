@@ -17,10 +17,12 @@ namespace Platformer
         List<Rectangle> charframes;
         Character character;
         SpriteFont font;
+        List<Platform> platform;
+        Texture2D platformpiece;
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferHeight = 200;
+            graphics.PreferredBackBufferHeight = 1080;
             graphics.PreferredBackBufferWidth = 1920;
             Content.RootDirectory = "Content";
         }
@@ -48,6 +50,7 @@ namespace Platformer
             spriteBatch = new SpriteBatch(GraphicsDevice);
             charspritesheet = Content.Load<Texture2D>("stick figure sprite sheet 50%");
             charspritesheetbackward = Content.Load<Texture2D>("stick figure sprite sheet 50% backward");
+            platformpiece = Content.Load<Texture2D>("platform piece");
             {
                 charframes = new List<Rectangle>();
                 //for(int i = 0; i < 70; i++)
@@ -61,8 +64,12 @@ namespace Platformer
                     }
                 }
             }
+            platform = new List<Platform>();
+            platform.Add(new Platform(1, 1, 5, 17, platformpiece));
+            platform.Add(new Platform(5, 1, 9, 17, platformpiece));
+            platform.Add(new Platform(10, 1, 13, 12, platformpiece));
             font = Content.Load<SpriteFont>("Font");
-            character = new Character(charspritesheet, charspritesheetbackward, new Vector2(0, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, new Vector4(0, 0, 0, 0), 0);
+            character = new Character(charspritesheet, charspritesheetbackward, new Vector2(100, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, new Vector4(30, 0, 30, 0), 0); //new Vector4(30, 0, 30, 0)
             // TODO: use this.Content to load your game content here
         }
 
@@ -87,7 +94,7 @@ namespace Platformer
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
             //character.speedX = 0;
-            character.Update(gameTime);
+            character.Update(gameTime, platform);
             // TODO: Add your update logic here
 
             base.Update(gameTime);
@@ -103,6 +110,12 @@ namespace Platformer
             spriteBatch.Begin();
             character.draw(spriteBatch, character.speedX);
             spriteBatch.DrawString(font, character.speedX.ToString(), new Vector2(0, 0), Color.White);
+            foreach(Platform p in platform)
+            {
+                p.draw(spriteBatch);
+            }
+            spriteBatch.Draw(platformpiece, new Rectangle(0, GraphicsDevice.Viewport.Height + character.groundY - 3, GraphicsDevice.Viewport.Width, 3), null, Color.Red);
+
             // TODO: Add your drawing code here
             spriteBatch.End();
             base.Draw(gameTime);

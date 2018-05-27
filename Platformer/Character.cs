@@ -9,13 +9,27 @@ namespace Platformer
     public class Character : AnimatedSprite
     {
         TimeSpan elapsedGameTime;
-        bool grounded = true;
+        public bool grounded = true;
         public float speedY = 0.0f;
-        float remainingJump = 2.0f;
         public int y = 0;
         int initialY = 0;
         Vector4 hitboxoffset;
         public int speedX = 0;
+        int maxspeed = 10;
+        public bool hitleft = false;
+        public bool hitright = false;
+        bool onPlatform = false;
+        bool hitleftplatform = false;
+        bool hitrightplatform = false;
+        bool walljumped = false;
+        bool justhit = false;
+        KeyboardState lastks;
+        KeyboardState ks;
+        int prevspeedX;
+        int leftbounds = 10;
+        int rightbounds = 1820;
+        public int groundY = 0;
+        float jumpspeed = 15f;
 
         public Character(Texture2D forward, Texture2D backward, Vector2 position, Color color, List<Rectangle> frames, Vector4 hitboxoffset, int framedelayamount) : base(forward, backward, position, color, frames, hitboxoffset, framedelayamount)
         {
@@ -30,80 +44,180 @@ namespace Platformer
         }
 
 
-        public void Update(GameTime gameTime)
+        public void Update(GameTime gameTime, List<Platform> platform)
         {
-            KeyboardState ks = Keyboard.GetState();
+            lastks = ks;
+            ks = Keyboard.GetState();
 
-            elapsedGameTime += gameTime.ElapsedGameTime;
 
-            if (ks.IsKeyDown(Keys.D))
+            hitrightplatform = false;
+            hitleftplatform = false;
+            foreach (Platform p in platform)
             {
-                if(speedX < 10)
+                
+                if (hitbox.Intersects(p.left))
+                {
+                    hitleftplatform = true;
+                    hitleft = true;
+                    prevspeedX = speedX;
+                    if(speedX >= 0)
+                    {
+                        speedX = 0;
+                    }
+                }
+                else if (hitbox.Intersects(p.right))
+                {
+                    hitrightplatform = true;
+                    hitright = true;
+                    prevspeedX = speedX;
+                    if (speedX <= 0)
+                    {
+                        speedX = 0;
+                    }
+                }
+                else if (hitbox.Intersects(p.top))
+                {
+                    groundY = p.top.Y - 1080;
+                    y = groundY;
+                    grounded = true;
+                    walljumped = false;
+                    p.onplatform = true;
+                }
+                else if (hitbox.Intersects(p.bottom))
+                {
+                    if(speedY <= 0)
+                    {
+                        speedY = 0;
+                    }
+                }
+                else
+                {
+                    if (p.onplatform)
+                    {
+                        p.onplatform = false;
+                        grounded = false;
+                        speedX = prevspeedX;
+                        groundY = 0;
+                    }
+                    
+                }
+            }
+                        
+            elapsedGameTime += gameTime.ElapsedGameTime;
+            if (position.X + speedX >= leftbounds - 10 && position.X + speedX <= rightbounds + 10)
+            {
+                if (ks.IsKeyDown(Keys.D) && position.X < rightbounds && !hitleftplatform)
+                {
+                    if (speedX < maxspeed)
+                    {
+                        speedX++;
+                    }
+                    else
+                    {
+                        //speedX = maxspeed;
+                    }
+                }
+                else if (ks.IsKeyDown(Keys.A) && position.X > leftbounds && !hitrightplatform)
+                {
+                    if (speedX > -maxspeed)
+                    {
+                        speedX--;
+                    }
+                    else
+                    {
+                        //speedX = -maxspeed;
+                    }
+                }
+                else if (position.X < leftbounds && !grounded)
+                {
+                    speedX = 0;
+                    hitright = true;
+                }
+                else if (position.X > rightbounds && !grounded)
+                {
+                    speedX = 0;
+                    hitleft = true;
+                }
+                else if (speedX < 0 && grounded)
                 {
                     speedX++;
                 }
-                else
-                {
-                    speedX = 10;
-                }
-            }
-            else if (ks.IsKeyDown(Keys.A))
-            {
-                if (speedX > -10)
+                else if (speedX > 0 && grounded)
                 {
                     speedX--;
                 }
-                else
+                else if (grounded)
                 {
-                    speedX = -10;
+                    speedX = 0;
+                    prevspeedX = 0;
                 }
-            }
-            else if(speedX < 0)
-            {
-                speedX++;
-            }
-            else if(speedX >0)
-            {
-                speedX--;
             }
             else
             {
+                if (!justhit && !grounded)
+                {
+                    prevspeedX = speedX;
+                    justhit = true;
+                }
                 speedX = 0;
             }
 
-            if (ks.IsKeyDown(Keys.Space))
+            if (position.X > leftbounds)
             {
+                justhit = false;
+                hitright = false;
+            }
+            if (position.X < rightbounds)
+            {
+                justhit = false;
+                hitleft = false;
+            }
+
+            if (ks.IsKeyDown(Keys.Space) && !lastks.IsKeyDown(Keys.Space))
+            {
+                groundY = 0;
                 if (grounded)
                 {
-                    speedY = -6f;
+                    speedY = -jumpspeed;
                     grounded = false;
                 }
-                else if (remainingJump > 0.0f && speedY < 0)
+                if (hitleft && !walljumped)
                 {
-                    remainingJump -= 0.1f;
-                    speedY -= 0.4f;
+                    speedY = -jumpspeed;
+                    speedX = -Math.Abs(prevspeedX);
+                    walljumped = true;
+                }
+                if (hitright && !walljumped)
+                {
+                    speedY = -jumpspeed;
+                    speedX = Math.Abs(prevspeedX);
+                    walljumped = true;
                 }
             }
 
             if (!grounded)
             {
                 speedY += 0.4f;
+                currentframe = 18;
             }
 
+            
+            if (y >= groundY && !grounded && speedY > 0)
+            {
+                grounded = true;
+                y = groundY;
+                speedY = 0;
+                walljumped = false;
+            }
+            
             y += (int)speedY;
 
-            if (y >= 0 && !grounded && speedY > 0)
-            {
-                remainingJump = 2.0f;
-                grounded = true;
-                y = 0;
-                speedY = 0;
-            }
-            if (speedX != 0 && elapsedGameTime >= TimeSpan.FromMilliseconds(50/speedX) && grounded)
+
+            if (speedX != 0 && elapsedGameTime >= TimeSpan.FromMilliseconds(50 / speedX) && grounded)
             {
                 if (currentframe < 68)
                 {
-                    currentframe+=2;
+                    currentframe += 2;
                 }
                 else
                 {
@@ -116,7 +230,6 @@ namespace Platformer
             {
                 currentframe = 70;
             }
-
             position.Y = initialY + y;
             position.X += speedX;
         }
