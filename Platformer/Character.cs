@@ -90,7 +90,7 @@ namespace Platformer
                         speedY = 0;
                     }
                 }
-                else
+                else if (ks.IsKeyDown(Keys.A) && position.X > leftbounds)
                 {
                     if (p.onplatform)
                     {
