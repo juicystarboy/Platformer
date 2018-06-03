@@ -30,6 +30,7 @@ namespace Platformer
         int rightbounds = 1820;
         public int groundY = 0;
         float jumpspeed = 15f;
+        public bool whymode;
 
         public Character(Texture2D forward, Texture2D backward, Vector2 position, Color color, List<Rectangle> frames, Vector4 hitboxoffset, int framedelayamount) : base(forward, backward, position, color, frames, hitboxoffset, framedelayamount)
         {
@@ -100,6 +101,24 @@ namespace Platformer
                         groundY = 0;
                     }
                     
+                }
+                else if (ks.IsKeyDown(Keys.D) && position.X < rightbounds)
+                {
+                    if (p.onplatform)
+                    {
+                        p.onplatform = false;
+                        grounded = false;
+                        speedX = prevspeedX;
+                        groundY = 0;
+                    }
+
+                }
+                else if(whymode)
+                {
+                    p.onplatform = false;
+                    grounded = false;
+                    speedX = prevspeedX;
+                    groundY = 0;
                 }
             }
                         
@@ -229,6 +248,15 @@ namespace Platformer
             if (speedX == 0)
             {
                 currentframe = 70;
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.O))
+            {
+                whymode = true;
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.P))
+            {
+                whymode = false;
             }
             position.Y = initialY + y;
             position.X += speedX;

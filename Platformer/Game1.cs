@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 using System.Collections.Generic;
 
 namespace Platformer
@@ -19,6 +20,13 @@ namespace Platformer
         SpriteFont font;
         List<Platform> platform;
         Texture2D platformpiece;
+        Random rand;
+        int randwidth;
+        int randx;
+        int randy;
+        int endx;
+        int amountofplatforms;
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -36,7 +44,7 @@ namespace Platformer
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-
+           
             base.Initialize();
         }
         
@@ -48,6 +56,7 @@ namespace Platformer
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            rand = new Random();
             charspritesheet = Content.Load<Texture2D>("stick figure sprite sheet 50%");
             charspritesheetbackward = Content.Load<Texture2D>("stick figure sprite sheet 50% backward");
             platformpiece = Content.Load<Texture2D>("platform piece");
@@ -65,9 +74,53 @@ namespace Platformer
                 }
             }
             platform = new List<Platform>();
-            platform.Add(new Platform(1, 1, 5, 17, platformpiece));
-            platform.Add(new Platform(5, 1, 9, 17, platformpiece));
-            platform.Add(new Platform(10, 1, 13, 12, platformpiece));
+            amountofplatforms = rand.Next(3, 10);
+            for (int i = 0; i <= amountofplatforms; i++)
+            {
+                bool valid = false;
+
+                while (!valid)
+                {
+                    valid = true;
+
+                    randwidth = rand.Next(1, 10);
+                    randx = rand.Next(0, 30);
+                    randy = rand.Next(2, 6) * 4;
+                    endx = randx + randwidth;
+
+                    foreach (Platform p in platform)
+                    {
+                        /*if (randx <= p.endx + 1 && randx >= p.x - 1 && randy == p.y)
+                        {
+                            randwidth = rand.Next(1, 10);
+                            randx = rand.Next(1, 30);
+                            endx = randx + randwidth;
+                            valid = false;
+                        }
+                        else if (endx > p.x - 1 && endx < p.endx + 1 && randy == p.y)
+                        {
+                            randwidth = rand.Next(1, 10);
+                            randx = rand.Next(1, 30);
+                            endx = randx + randwidth;
+                            valid = false;
+                        }*/
+                        if (new Rectangle(randx * 50, randy * 50, randwidth * 50, 1).Intersects(p.hitbox))
+                        {
+                            valid = false;
+                            randwidth = rand.Next(1, 10);
+                            randx = rand.Next(1, 30);
+                            randy = rand.Next(3, 7) * 3;
+                            endx = randx + randwidth;
+                        }
+                        else
+                        {
+                            valid = true;
+                        }
+                    }
+                }
+
+                platform.Add(new Platform(randwidth, 1, randx, randy, endx, platformpiece));
+            }
             font = Content.Load<SpriteFont>("Font");
             character = new Character(charspritesheet, charspritesheetbackward, new Vector2(100, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, new Vector4(30, 0, 30, 0), 0); //new Vector4(30, 0, 30, 0)
             // TODO: use this.Content to load your game content here
@@ -95,6 +148,57 @@ namespace Platformer
                 Exit();
             //character.speedX = 0;
             character.Update(gameTime, platform);
+            if (Keyboard.GetState().IsKeyDown(Keys.N) && character.whymode)
+            {
+                platform.Clear();
+                amountofplatforms = rand.Next(3, 10);
+                for (int i = 0; i <= amountofplatforms; i++)
+                {
+                    bool valid = false;
+
+                    while (!valid)
+                    {
+                        valid = true;
+
+                        randwidth = rand.Next(1, 10);
+                        randx = rand.Next(0, 30);
+                        randy = rand.Next(2, 6) * 4;
+                        endx = randx + randwidth;
+
+                        foreach (Platform p in platform)
+                        {
+                            /*if (randx <= p.endx + 1 && randx >= p.x - 1 && randy == p.y)
+                            {
+                                randwidth = rand.Next(1, 10);
+                                randx = rand.Next(1, 30);
+                                endx = randx + randwidth;
+                                valid = false;
+                            }
+                            else if (endx > p.x - 1 && endx < p.endx + 1 && randy == p.y)
+                            {
+                                randwidth = rand.Next(1, 10);
+                                randx = rand.Next(1, 30);
+                                endx = randx + randwidth;
+                                valid = false;
+                            }*/
+                            if (new Rectangle(randx * 50, randy * 50, randwidth * 50, 1).Intersects(p.hitbox))
+                            {
+                                valid = false;
+                                randwidth = rand.Next(1, 10);
+                                randx = rand.Next(0, 30);
+                                randy = rand.Next(3, 7) * 3;
+                                endx = randx + randwidth;
+                            }
+                            else
+                            {
+                                valid = true;
+                            }
+                        }
+                    }
+
+                    platform.Add(new Platform(randwidth, 1, randx, randy, endx, platformpiece));
+                }
+            }
             // TODO: Add your update logic here
 
             base.Update(gameTime);
@@ -110,9 +214,12 @@ namespace Platformer
             spriteBatch.Begin();
             character.draw(spriteBatch, character.speedX);
             spriteBatch.DrawString(font, character.speedX.ToString(), new Vector2(0, 0), Color.White);
-            foreach(Platform p in platform)
+            spriteBatch.DrawString(font, (amountofplatforms+1).ToString(), new Vector2(0, 12), Color.White);
+            int c = 0;
+            foreach (Platform p in platform)
             {
                 p.draw(spriteBatch);
+                spriteBatch.DrawString(font, $"{c++}: {p.x * 50},{p.y * 50} {p.width * 50}x{p.height * 50}", new Vector2(p.x * 50, p.y * 50), Color.White);
             }
             spriteBatch.Draw(platformpiece, new Rectangle(0, GraphicsDevice.Viewport.Height + character.groundY - 3, GraphicsDevice.Viewport.Width, 3), null, Color.Red);
 
