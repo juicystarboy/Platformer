@@ -12,6 +12,8 @@ namespace Platformer
     {
         public Texture2D forward;
         public Texture2D backward;
+        public Texture2D forwardcrouching;
+        public Texture2D backwardcrouching;
         public Vector2 position;
         public Color color;
         /*
@@ -19,10 +21,12 @@ namespace Platformer
         Color invertedColor;
         Color originalColor;*/
 
-        public Sprite(Texture2D forward, Texture2D backward, Vector2 position, Color color)
+        public Sprite(Texture2D forward, Texture2D backward, Texture2D forwardcrouching, Texture2D backwardcrouching, Vector2 position, Color color)
         {
             this.forward = forward;
             this.backward = backward;
+            this.forwardcrouching = forwardcrouching;
+            this.backwardcrouching = backwardcrouching;
             this.position = position;
             this.color = color;
             //originalColor = color;
@@ -43,7 +47,7 @@ namespace Platformer
             }
         }*/
 
-        public virtual void draw(SpriteBatch spriteBatch, int speedX)
+        public virtual void draw(SpriteBatch spriteBatch, int speedX, bool crouching)
         {
             if (speedX >= 0)
             {

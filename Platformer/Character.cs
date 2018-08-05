@@ -31,8 +31,13 @@ namespace Platformer
         public int groundY = 0;
         float jumpspeed = 15f;
         public bool whymode;
+        public bool crouching;
+        public bool cantcrouch;
+        Rectangle standinghitbox;
 
-        public Character(Texture2D forward, Texture2D backward, Vector2 position, Color color, List<Rectangle> frames, Vector4 hitboxoffset, int framedelayamount) : base(forward, backward, position, color, frames, hitboxoffset, framedelayamount)
+        public bool wasOnPlatform = false;
+
+        public Character(Texture2D forward, Texture2D backward, Texture2D forwardcrouching, Texture2D backwardcrouching, Vector2 position, Color color, List<Rectangle> frames, Vector4 hitboxoffset, int framedelayamount) : base(forward, backward, forwardcrouching, backwardcrouching, position, color, frames, hitboxoffset, framedelayamount)
         {
             this.hitboxoffset = hitboxoffset;
             initialY = (int)position.Y;
@@ -53,15 +58,17 @@ namespace Platformer
 
             hitrightplatform = false;
             hitleftplatform = false;
+            groundY = 0;
+            bool onAPlatform = false;
             foreach (Platform p in platform)
             {
-                
+
                 if (hitbox.Intersects(p.left))
                 {
                     hitleftplatform = true;
                     hitleft = true;
                     prevspeedX = speedX;
-                    if(speedX >= 0)
+                    if (speedX >= 0)
                     {
                         speedX = 0;
                     }
@@ -83,10 +90,11 @@ namespace Platformer
                     grounded = true;
                     walljumped = false;
                     p.onplatform = true;
+                    onAPlatform = true;
                 }
                 else if (hitbox.Intersects(p.bottom))
                 {
-                    if(speedY <= 0)
+                    if (speedY <= 0)
                     {
                         speedY = 0;
                     }
@@ -100,7 +108,7 @@ namespace Platformer
                         speedX = prevspeedX;
                         groundY = 0;
                     }
-                    
+
                 }
                 else if (ks.IsKeyDown(Keys.D) && position.X < rightbounds)
                 {
@@ -111,20 +119,70 @@ namespace Platformer
                         speedX = prevspeedX;
                         groundY = 0;
                     }
-
                 }
-                else if(whymode)
+                else if (whymode)
                 {
                     p.onplatform = false;
                     grounded = false;
                     speedX = prevspeedX;
                     groundY = 0;
                 }
+                /*
+                if (!hitbox.Intersects(p.top) && y!=0)
+                {
+                    grounded = false;
+                }
+                */
             }
-                        
+            if (!onAPlatform && wasOnPlatform)
+            {
+                grounded = false;
+            }
+            wasOnPlatform = onAPlatform;
+            cantcrouch = false;
+            standinghitbox = new Rectangle(hitbox.X, hitbox.Y - (int)hitboxoffset.Y, hitbox.Width, hitbox.Height + (int)hitboxoffset.Y);
+            foreach (Platform b in platform)
+            {
+                if (standinghitbox.Intersects(b.bottom))
+                {
+                    cantcrouch = true;
+                }
+            }
+            if (ks.IsKeyDown(Keys.LeftShift) || ks.CapsLock)
+            {
+                crouching = true;
+                hitboxoffset.Y = 55;
+            }
+            else if(!cantcrouch)
+            {
+                crouching = false;
+                hitboxoffset.Y = 5;
+            }
             elapsedGameTime += gameTime.ElapsedGameTime;
             if (position.X + speedX >= leftbounds - 10 && position.X + speedX <= rightbounds + 10)
             {
+                if (ks.IsKeyDown(Keys.Space) && !lastks.IsKeyDown(Keys.Space))
+                {
+                    groundY = 0;
+                    if (grounded)
+                    {
+                        speedY = -jumpspeed;
+                        grounded = false;
+                    }
+                    if (hitleft && !walljumped)
+                    {
+                        speedY = -jumpspeed;
+                        speedX = -Math.Abs(prevspeedX);
+                        walljumped = true;
+                    }
+                    if (hitright && !walljumped)
+                    {
+                        speedY = -jumpspeed;
+                        speedX = Math.Abs(prevspeedX);
+                        walljumped = true;
+                    }
+                }
+
                 if (ks.IsKeyDown(Keys.D) && position.X < rightbounds && !hitleftplatform)
                 {
                     if (speedX < maxspeed)
@@ -192,35 +250,13 @@ namespace Platformer
                 hitleft = false;
             }
 
-            if (ks.IsKeyDown(Keys.Space) && !lastks.IsKeyDown(Keys.Space))
-            {
-                groundY = 0;
-                if (grounded)
-                {
-                    speedY = -jumpspeed;
-                    grounded = false;
-                }
-                if (hitleft && !walljumped)
-                {
-                    speedY = -jumpspeed;
-                    speedX = -Math.Abs(prevspeedX);
-                    walljumped = true;
-                }
-                if (hitright && !walljumped)
-                {
-                    speedY = -jumpspeed;
-                    speedX = Math.Abs(prevspeedX);
-                    walljumped = true;
-                }
-            }
-
             if (!grounded)
             {
                 speedY += 0.4f;
                 currentframe = 18;
             }
 
-            
+
             if (y >= groundY && !grounded && speedY > 0)
             {
                 grounded = true;
@@ -228,7 +264,7 @@ namespace Platformer
                 speedY = 0;
                 walljumped = false;
             }
-            
+
             y += (int)speedY;
 
 
