@@ -18,7 +18,7 @@ namespace Platformer
         int maxspeed = 10;
         public bool hitleft = false;
         public bool hitright = false;
-        bool onPlatform = false;
+        public bool onPlatform = false;
         bool hitleftplatform = false;
         bool hitrightplatform = false;
         bool walljumped = false;
@@ -34,7 +34,7 @@ namespace Platformer
         public bool crouching;
         public bool cantcrouch;
         Rectangle standinghitbox;
-
+        public bool onAPlatform = false;
         public bool wasOnPlatform = false;
 
         public Character(Texture2D forward, Texture2D backward, Texture2D forwardcrouching, Texture2D backwardcrouching, Vector2 position, Color color, List<Rectangle> frames, Vector4 hitboxoffset, int framedelayamount) : base(forward, backward, forwardcrouching, backwardcrouching, position, color, frames, hitboxoffset, framedelayamount)
@@ -59,7 +59,7 @@ namespace Platformer
             hitrightplatform = false;
             hitleftplatform = false;
             groundY = 0;
-            bool onAPlatform = false;
+            onAPlatform = false;
             foreach (Platform p in platform)
             {
 

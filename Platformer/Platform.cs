@@ -42,7 +42,7 @@ namespace Platformer
             {
                 for (int h = 0; h < height; h++)
                 {
-                    spritebatch.Draw(texture, new Vector2(50 * x + 50 * w, 50 * y + 50 * h), Color.White);
+                    spritebatch.Draw(texture, new Vector2(50 * x + 50 * w, 50 * y + 50 * h), Color.Black);
                 }
             }
         }

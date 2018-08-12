@@ -27,9 +27,11 @@ namespace Platformer
         int randx;
         int randy;
         int endx;
+        int highestplatformY;
         int amountofplatforms;
         bool platformonlower;
         bool canreset = true;
+        float LavaY = 0f;
 
         public Game1()
         {
@@ -82,6 +84,7 @@ namespace Platformer
             }
             platform = new List<Platform>();
             amountofplatforms = rand.Next(10, 20);
+            highestplatformY = 17;
             for (int i = 0; i <= amountofplatforms; i++)
             {
                 bool valid = false;
@@ -89,7 +92,6 @@ namespace Platformer
                 while (!valid)
                 {
                     valid = true;
-
                     randwidth = rand.Next(1, 10);
                     randx = rand.Next(0, 30);
                     randy = 17; //rand.Next(1, 10) * 1;
@@ -132,8 +134,11 @@ namespace Platformer
                     {
                         randy = 17;
                     }
+                    if(randy <= highestplatformY)
+                    {
+                        highestplatformY = randy;
+                    }
                 }
-
                 platform.Add(new Platform(randwidth, 1, randx, randy, endx, platformpiece));
             }
             font = Content.Load<SpriteFont>("Font");
@@ -163,10 +168,12 @@ namespace Platformer
                 Exit();
             //character.speedX = 0;
             character.Update(gameTime, platform);
-            if (Keyboard.GetState().IsKeyDown(Keys.N) && character.whymode || (Keyboard.GetState().IsKeyDown(Keys.R) && canreset))
+            if (Keyboard.GetState().IsKeyDown(Keys.N) && character.whymode || (Keyboard.GetState().IsKeyDown(Keys.R) && canreset) || (character.hitbox.Y + character.hitbox.Height >= GraphicsDevice.Viewport.Height - LavaY + 100) || ((character.hitbox.Y + character.hitbox.Height - 3 <= highestplatformY*50) && character.onAPlatform))
             {
+                LavaY = 0;
                 platform.Clear();
                 amountofplatforms = rand.Next(10, 20);
+                highestplatformY = 17;
                 for (int i = 0; i <= amountofplatforms; i++)
                 {
                     bool valid = false;
@@ -182,6 +189,20 @@ namespace Platformer
                         platformonlower = false;
                         foreach (Platform p in platform)
                         {
+                            /*if (randx <= p.endx + 1 && randx >= p.x - 1 && randy == p.y)
+                            {
+                                randwidth = rand.Next(1, 10);
+                                randx = rand.Next(1, 30);
+                                endx = randx + randwidth;
+                                valid = false;
+                            }
+                            else if (endx > p.x - 1 && endx < p.endx + 1 && randy == p.y)
+                            {
+                                randwidth = rand.Next(1, 10);
+                                randx = rand.Next(1, 30);
+                                endx = randx + randwidth;
+                                valid = false;
+                            }*/
                             if (p.y == 17)
                             {
                                 platformonlower = true;
@@ -203,20 +224,27 @@ namespace Platformer
                         {
                             randy = 17;
                         }
+                        if (randy <= highestplatformY)
+                        {
+                            highestplatformY = randy;
+                        }
                     }
 
                     platform.Add(new Platform(randwidth, 1, randx, randy, endx, platformpiece));
                 }
-                if(Keyboard.GetState().IsKeyDown(Keys.R))
+                font = Content.Load<SpriteFont>("Font");
+                character = new Character(charspritesheet, charspritesheetbackward, charspritesheetcrouch, charspritesheetbackwardcrouch, new Vector2(100, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, new Vector4(30, 5, 30, 0), 0); //new Vector4(30, 0, 30, 0)
+                if (Keyboard.GetState().IsKeyDown(Keys.R))
                 {
                     canreset = false;
                 }
             }
             // TODO: Add your update logic here
-            if (!Keyboard.GetState().IsKeyDown(Keys.N))
+            if (!Keyboard.GetState().IsKeyDown(Keys.R))
             {
                 canreset = true;
             }
+            LavaY+= 0.5f;
             base.Update(gameTime);
         }
 
@@ -231,13 +259,16 @@ namespace Platformer
             character.draw(spriteBatch, character.speedX, character.crouching);
             spriteBatch.DrawString(font, character.speedX.ToString(), new Vector2(0, 0), Color.White);
             spriteBatch.DrawString(font, (amountofplatforms+1).ToString(), new Vector2(0, 12), Color.White);
+            spriteBatch.DrawString(font, highestplatformY.ToString(), new Vector2(0, 24), Color.White);
+
             int c = 0;
             foreach (Platform p in platform)
             {
                 p.draw(spriteBatch);
                 //spriteBatch.DrawString(font, $"{c++}: {p.x * 50},{p.y * 50} {p.width * 50}x{p.height * 50}", new Vector2(p.x * 50, p.y * 50), Color.White);
             }
-            spriteBatch.Draw(platformpiece, new Rectangle(0, GraphicsDevice.Viewport.Height + character.groundY - 3, GraphicsDevice.Viewport.Width, 3), null, Color.Red);
+            spriteBatch.Draw(platformpiece, new Rectangle(0, GraphicsDevice.Viewport.Height + character.groundY - 3, GraphicsDevice.Viewport.Width, 3), null, Color.Black);
+            spriteBatch.Draw(platformpiece, new Rectangle(0, GraphicsDevice.Viewport.Height + 100 - (int)LavaY, GraphicsDevice.Viewport.Width, (int)LavaY), null, Color.OrangeRed);
 
             // TODO: Add your drawing code here
             spriteBatch.End();
