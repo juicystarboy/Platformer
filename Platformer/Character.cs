@@ -36,6 +36,7 @@ namespace Platformer
         Rectangle standinghitbox;
         public bool onAPlatform = false;
         public bool wasOnPlatform = false;
+        public bool alwayscrouch;
 
         public Character(Texture2D forward, Texture2D backward, Texture2D forwardcrouching, Texture2D backwardcrouching, Vector2 position, Color color, List<Rectangle> frames, Vector4 hitboxoffset, int framedelayamount) : base(forward, backward, forwardcrouching, backwardcrouching, position, color, frames, hitboxoffset, framedelayamount)
         {
@@ -148,7 +149,7 @@ namespace Platformer
                     cantcrouch = true;
                 }
             }
-            if (ks.IsKeyDown(Keys.LeftShift) || ks.CapsLock)
+            if (ks.IsKeyDown(Keys.LeftShift) || ks.CapsLock || alwayscrouch)
             {
                 crouching = true;
                 hitboxoffset.Y = 55;

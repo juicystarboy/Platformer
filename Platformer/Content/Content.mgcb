@@ -80,3 +80,10 @@
 /processorParam:TextureFormat=Color
 /build:stick figure sprite sheet 50% crouching.png
 
+#begin big.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:big.spritefont
+

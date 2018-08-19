@@ -20,6 +20,7 @@ namespace Platformer
         List<Rectangle> charframes;
         Character character;
         SpriteFont font;
+        SpriteFont big;
         List<Platform> platform;
         Texture2D platformpiece;
         Random rand;
@@ -32,6 +33,9 @@ namespace Platformer
         bool platformonlower;
         bool canreset = true;
         float LavaY = 0f;
+        bool win = false;
+        bool lose = false;
+        int levels = 0;
 
         public Game1()
         {
@@ -141,7 +145,8 @@ namespace Platformer
                 }
                 platform.Add(new Platform(randwidth, 1, randx, randy, endx, platformpiece));
             }
-            font = Content.Load<SpriteFont>("Font");
+            font = Content.Load<SpriteFont>("font");
+            big = Content.Load<SpriteFont>("big");
             character = new Character(charspritesheet, charspritesheetbackward, charspritesheetcrouch, charspritesheetbackwardcrouch, new Vector2(100, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, new Vector4(30, 5, 30, 0), 0); //new Vector4(30, 0, 30, 0)
             // TODO: use this.Content to load your game content here
         }
@@ -167,10 +172,16 @@ namespace Platformer
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
             //character.speedX = 0;
-            character.Update(gameTime, platform);
-            if (Keyboard.GetState().IsKeyDown(Keys.N) && character.whymode || (Keyboard.GetState().IsKeyDown(Keys.R) && canreset) || (character.hitbox.Y + character.hitbox.Height >= GraphicsDevice.Viewport.Height - LavaY + 100) || ((character.hitbox.Y + character.hitbox.Height - 3 <= highestplatformY*50) && character.onAPlatform))
+            if(!win && !lose)
+            {
+                character.Update(gameTime, platform);
+                LavaY += 0.5f;
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.N) && character.whymode || (Keyboard.GetState().IsKeyDown(Keys.R) && canreset))
             {
                 LavaY = 0;
+                win = false;
+                lose = false;
                 platform.Clear();
                 amountofplatforms = rand.Next(10, 20);
                 highestplatformY = 17;
@@ -189,7 +200,7 @@ namespace Platformer
                         platformonlower = false;
                         foreach (Platform p in platform)
                         {
-                            /*if (randx <= p.endx + 1 && randx >= p.x - 1 && randy == p.y)
+                            /*if (randx < p.endx + 1 && randx > p.x - 1 && randy == p.y)
                             {
                                 randwidth = rand.Next(1, 10);
                                 randx = rand.Next(1, 30);
@@ -233,7 +244,10 @@ namespace Platformer
                     platform.Add(new Platform(randwidth, 1, randx, randy, endx, platformpiece));
                 }
                 font = Content.Load<SpriteFont>("Font");
-                character = new Character(charspritesheet, charspritesheetbackward, charspritesheetcrouch, charspritesheetbackwardcrouch, new Vector2(100, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, new Vector4(30, 5, 30, 0), 0); //new Vector4(30, 0, 30, 0)
+                if (!character.whymode)
+                {
+                    character = new Character(charspritesheet, charspritesheetbackward, charspritesheetcrouch, charspritesheetbackwardcrouch, new Vector2(100, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, new Vector4(30, 5, 30, 0), 0); //new Vector4(30, 0, 30, 0)
+                }
                 if (Keyboard.GetState().IsKeyDown(Keys.R))
                 {
                     canreset = false;
@@ -244,22 +258,44 @@ namespace Platformer
             {
                 canreset = true;
             }
-            LavaY+= 0.5f;
             base.Update(gameTime);
         }
-
+        string controls = " move - WASD \n jump - space \n restart - R \n crouch - L Shift \n toggle crouch - Caps \n whymode on - O \n whymode off - P \n whymode level randomizer - N";
         /// <summary>
         /// This is called when the game should draw itself.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-            spriteBatch.Begin();
+            if (((character.hitbox.Y + character.hitbox.Height - 15 <= highestplatformY * 50) && character.onAPlatform) || win)
+            {
+                GraphicsDevice.Clear(Color.Green);
+                spriteBatch.Begin();
+                spriteBatch.DrawString(big, "You win! Press R to play again", new Vector2((GraphicsDevice.Viewport.Width - big.MeasureString("You win! Press R to play again").X) /2, 50), Color.White);
+                if (!win)
+                {
+                    levels++;
+                }
+                win = true;
+            }
+            else if ((character.hitbox.Y + character.hitbox.Height >= GraphicsDevice.Viewport.Height - LavaY + 100) || lose)
+            {
+                GraphicsDevice.Clear(Color.Firebrick);
+                spriteBatch.Begin();
+                spriteBatch.DrawString(big, "Ouchie ouch you got got by the lava. Press R to try again", new Vector2((GraphicsDevice.Viewport.Width - big.MeasureString("Ouchie ouch you got got by the lava. Press R to try again").X) / 2, 50), Color.White);
+                levels = 0;
+                lose = true;
+            }
+            else
+            {
+                GraphicsDevice.Clear(Color.CornflowerBlue);
+                spriteBatch.Begin();
+            }
             character.draw(spriteBatch, character.speedX, character.crouching);
-            spriteBatch.DrawString(font, character.speedX.ToString(), new Vector2(0, 0), Color.White);
+            /*spriteBatch.DrawString(font, character.speedX.ToString(), new Vector2(0, 0), Color.White);
             spriteBatch.DrawString(font, (amountofplatforms+1).ToString(), new Vector2(0, 12), Color.White);
-            spriteBatch.DrawString(font, highestplatformY.ToString(), new Vector2(0, 24), Color.White);
+            spriteBatch.DrawString(font, highestplatformY.ToString(), new Vector2(0, 24), Color.White);*/
+            spriteBatch.DrawString(big, levels.ToString(), new Vector2(0, 0), Color.White);
 
             int c = 0;
             foreach (Platform p in platform)
@@ -270,6 +306,7 @@ namespace Platformer
             spriteBatch.Draw(platformpiece, new Rectangle(0, GraphicsDevice.Viewport.Height + character.groundY - 3, GraphicsDevice.Viewport.Width, 3), null, Color.Black);
             spriteBatch.Draw(platformpiece, new Rectangle(0, GraphicsDevice.Viewport.Height + 100 - (int)LavaY, GraphicsDevice.Viewport.Width, (int)LavaY), null, Color.OrangeRed);
 
+            spriteBatch.DrawString(font, controls, new Vector2(GraphicsDevice.Viewport.Width - font.MeasureString(controls).X - 50, 0), Color.White);
             // TODO: Add your drawing code here
             spriteBatch.End();
             base.Draw(gameTime);
