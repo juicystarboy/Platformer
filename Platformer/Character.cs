@@ -93,7 +93,7 @@ namespace Platformer
                     p.onplatform = true;
                     onAPlatform = true;
                 }
-                else if (hitbox.Intersects(p.bottom))
+                else if (hitbox.Intersects(p.bottom) || hitbox.Y < 0)
                 {
                     if (speedY <= 0)
                     {
@@ -154,7 +154,7 @@ namespace Platformer
                 crouching = true;
                 hitboxoffset.Y = 55;
             }
-            else if(!cantcrouch)
+            else if (!cantcrouch)
             {
                 crouching = false;
                 hitboxoffset.Y = 5;
@@ -170,13 +170,13 @@ namespace Platformer
                         speedY = -jumpspeed;
                         grounded = false;
                     }
-                    if (hitleft && !walljumped)
+                    if (hitleft && !walljumped && !onAPlatform)
                     {
                         speedY = -jumpspeed;
                         speedX = -Math.Abs(prevspeedX);
                         walljumped = true;
                     }
-                    if (hitright && !walljumped)
+                    if (hitright && !walljumped && !onAPlatform)
                     {
                         speedY = -jumpspeed;
                         speedX = Math.Abs(prevspeedX);

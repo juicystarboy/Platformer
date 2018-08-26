@@ -42,6 +42,8 @@ namespace Platformer
             graphics = new GraphicsDeviceManager(this);
             graphics.PreferredBackBufferHeight = 1080;
             graphics.PreferredBackBufferWidth = 1920;
+            //graphics.IsFullScreen = true;
+            Window.IsBorderless = true;
             Content.RootDirectory = "Content";
         }
         
@@ -138,14 +140,17 @@ namespace Platformer
                     {
                         randy = 17;
                     }
-                    if(randy <= highestplatformY)
-                    {
-                        highestplatformY = randy;
-                    }
                 }
                 platform.Add(new Platform(randwidth, 1, randx, randy, endx, platformpiece));
             }
-            font = Content.Load<SpriteFont>("font");
+            for (int i = 0; i < platform.Count; i++)
+            {
+                if (platform[i].y <= highestplatformY)
+                {
+                    highestplatformY = platform[i].y;
+                }
+            }
+                font = Content.Load<SpriteFont>("font");
             big = Content.Load<SpriteFont>("big");
             character = new Character(charspritesheet, charspritesheetbackward, charspritesheetcrouch, charspritesheetbackwardcrouch, new Vector2(100, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, new Vector4(30, 5, 30, 0), 0); //new Vector4(30, 0, 30, 0)
             // TODO: use this.Content to load your game content here
@@ -171,6 +176,11 @@ namespace Platformer
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+            /*
+            if (Keyboard.GetState().IsKeyDown(Keys.F11))
+            {
+                graphics.ToggleFullScreen();
+            }*/
             //character.speedX = 0;
             if(!win && !lose)
             {
@@ -235,13 +245,16 @@ namespace Platformer
                         {
                             randy = 17;
                         }
-                        if (randy <= highestplatformY)
-                        {
-                            highestplatformY = randy;
-                        }
                     }
 
                     platform.Add(new Platform(randwidth, 1, randx, randy, endx, platformpiece));
+                }
+                for(int i = 0; i < platform.Count; i++)
+                {
+                    if (platform[i].y <= highestplatformY)
+                    {
+                        highestplatformY = platform[i].y;
+                    }
                 }
                 font = Content.Load<SpriteFont>("Font");
                 if (!character.whymode)
@@ -278,7 +291,7 @@ namespace Platformer
                 }
                 win = true;
             }
-            else if ((character.hitbox.Y + character.hitbox.Height >= GraphicsDevice.Viewport.Height - LavaY + 100) || lose)
+            else if ((character.hitbox.Y + character.hitbox.Height >= GraphicsDevice.Viewport.Height - LavaY + 110) || lose)
             {
                 GraphicsDevice.Clear(Color.Firebrick);
                 spriteBatch.Begin();
