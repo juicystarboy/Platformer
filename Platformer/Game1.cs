@@ -123,7 +123,7 @@ namespace Platformer
                         {
                             platformonlower = true;
                         }
-                        if (new Rectangle(randx * 50, randy * 50, randwidth * 50,  1).Intersects(p.hitbox))
+                        if (new Rectangle((randx-1) * 50, randy * 50, (randwidth+2) * 50,  1).Intersects(p.hitbox))
                         {
                             valid = false;
                             randwidth = rand.Next(1, 10);
@@ -180,12 +180,12 @@ namespace Platformer
             if (Keyboard.GetState().IsKeyDown(Keys.F11))
             {
                 graphics.ToggleFullScreen();
-            }*/
+            */
             //character.speedX = 0;
             if(!win && !lose)
             {
                 character.Update(gameTime, platform);
-                LavaY += 0.5f;
+                //LavaY += 0.5f;
             }
             if (Keyboard.GetState().IsKeyDown(Keys.N) && character.whymode || (Keyboard.GetState().IsKeyDown(Keys.R) && canreset))
             {
@@ -202,7 +202,6 @@ namespace Platformer
                     while (!valid)
                     {
                         valid = true;
-
                         randwidth = rand.Next(1, 10);
                         randx = rand.Next(0, 30);
                         randy = 17; //rand.Next(1, 10) * 1;
@@ -210,7 +209,7 @@ namespace Platformer
                         platformonlower = false;
                         foreach (Platform p in platform)
                         {
-                            /*if (randx < p.endx + 1 && randx > p.x - 1 && randy == p.y)
+                            /*if (randx <= p.endx + 1 && randx >= p.x - 1 && randy == p.y)
                             {
                                 randwidth = rand.Next(1, 10);
                                 randx = rand.Next(1, 30);
@@ -228,7 +227,7 @@ namespace Platformer
                             {
                                 platformonlower = true;
                             }
-                            if (new Rectangle(randx * 50, randy * 50, randwidth * 50, 1).Intersects(p.hitbox))
+                            if (new Rectangle((randx - 1) * 50, randy * 50, (randwidth + 2) * 50, 1).Intersects(p.hitbox))
                             {
                                 valid = false;
                                 randwidth = rand.Next(1, 10);
@@ -246,10 +245,9 @@ namespace Platformer
                             randy = 17;
                         }
                     }
-
                     platform.Add(new Platform(randwidth, 1, randx, randy, endx, platformpiece));
                 }
-                for(int i = 0; i < platform.Count; i++)
+                for (int i = 0; i < platform.Count; i++)
                 {
                     if (platform[i].y <= highestplatformY)
                     {
@@ -280,7 +278,7 @@ namespace Platformer
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            if (((character.hitbox.Y + character.hitbox.Height - 15 <= highestplatformY * 50) && character.onAPlatform) || win)
+            /*if (((character.hitbox.Y + character.hitbox.Height - 15 <= highestplatformY * 50) && character.onAPlatform) || win)
             {
                 GraphicsDevice.Clear(Color.Green);
                 spriteBatch.Begin();
@@ -290,8 +288,8 @@ namespace Platformer
                     levels++;
                 }
                 win = true;
-            }
-            else if ((character.hitbox.Y + character.hitbox.Height >= GraphicsDevice.Viewport.Height - LavaY + 110) || lose)
+            }*/
+            if ((character.hitbox.Y + character.hitbox.Height >= GraphicsDevice.Viewport.Height - LavaY + 110) || lose)
             {
                 GraphicsDevice.Clear(Color.Firebrick);
                 spriteBatch.Begin();
@@ -305,8 +303,8 @@ namespace Platformer
                 spriteBatch.Begin();
             }
             character.draw(spriteBatch, character.speedX, character.crouching);
-            /*spriteBatch.DrawString(font, character.speedX.ToString(), new Vector2(0, 0), Color.White);
-            spriteBatch.DrawString(font, (amountofplatforms+1).ToString(), new Vector2(0, 12), Color.White);
+            spriteBatch.DrawString(font, character.speedX.ToString(), new Vector2(0, 0), Color.White);
+            /*spriteBatch.DrawString(font, (amountofplatforms+1).ToString(), new Vector2(0, 12), Color.White);
             spriteBatch.DrawString(font, highestplatformY.ToString(), new Vector2(0, 24), Color.White);*/
             spriteBatch.DrawString(big, levels.ToString(), new Vector2(0, 0), Color.White);
 
@@ -314,12 +312,19 @@ namespace Platformer
             foreach (Platform p in platform)
             {
                 p.draw(spriteBatch);
+                spriteBatch.Draw(platformpiece, p.top, null, Color.OrangeRed);
+                spriteBatch.Draw(platformpiece, p.bottom, null, Color.OrangeRed);
+                //spriteBatch.Draw(platformpiece, p.left, null, Color.OrangeRed);
+                //spriteBatch.Draw(platformpiece, p.right, null, Color.OrangeRed);
                 //spriteBatch.DrawString(font, $"{c++}: {p.x * 50},{p.y * 50} {p.width * 50}x{p.height * 50}", new Vector2(p.x * 50, p.y * 50), Color.White);
             }
             spriteBatch.Draw(platformpiece, new Rectangle(0, GraphicsDevice.Viewport.Height + character.groundY - 3, GraphicsDevice.Viewport.Width, 3), null, Color.Black);
             spriteBatch.Draw(platformpiece, new Rectangle(0, GraphicsDevice.Viewport.Height + 100 - (int)LavaY, GraphicsDevice.Viewport.Width, (int)LavaY), null, Color.OrangeRed);
 
+            //spriteBatch.Draw(platformpiece, character.hitbox, null, Color.OrangeRed);
+
             spriteBatch.DrawString(font, controls, new Vector2(GraphicsDevice.Viewport.Width - font.MeasureString(controls).X - 50, 0), Color.White);
+            spriteBatch.DrawString(font, $"right wall: {character.hitrightwall}, left wall: {character.hitleftwall}, left of platform: {character.hitleftplatform}, right of platform: {character.hitrightplatform}, top: {character.onPlatform}", new Vector2(100,100), Color.White);
             // TODO: Add your drawing code here
             spriteBatch.End();
             base.Draw(gameTime);

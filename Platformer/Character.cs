@@ -16,18 +16,18 @@ namespace Platformer
         Vector4 hitboxoffset;
         public int speedX = 0;
         int maxspeed = 10;
-        public bool hitleft = false;
-        public bool hitright = false;
+        public bool hitrightwall = false;
+        public bool hitleftwall = false;
         public bool onPlatform = false;
-        bool hitleftplatform = false;
-        bool hitrightplatform = false;
+        public bool hitleftplatform = false;
+        public bool hitrightplatform = false;
         bool walljumped = false;
         bool justhit = false;
         KeyboardState lastks;
         KeyboardState ks;
         int prevspeedX;
-        int leftbounds = 10;
-        int rightbounds = 1820;
+        const int leftbounds = 10;
+        const int rightbounds = 1820;
         public int groundY = 0;
         float jumpspeed = 15f;
         public bool whymode;
@@ -67,7 +67,6 @@ namespace Platformer
                 if (hitbox.Intersects(p.left))
                 {
                     hitleftplatform = true;
-                    hitleft = true;
                     prevspeedX = speedX;
                     if (speedX >= 0)
                     {
@@ -77,7 +76,6 @@ namespace Platformer
                 else if (hitbox.Intersects(p.right))
                 {
                     hitrightplatform = true;
-                    hitright = true;
                     prevspeedX = speedX;
                     if (speedX <= 0)
                     {
@@ -170,21 +168,21 @@ namespace Platformer
                         speedY = -jumpspeed;
                         grounded = false;
                     }
-                    if (hitleft && !walljumped && !onAPlatform)
+                    if ((hitrightwall && !walljumped && !onAPlatform) || (hitleftplatform && !walljumped && !onAPlatform))
                     {
                         speedY = -jumpspeed;
-                        speedX = -Math.Abs(prevspeedX);
+                        //speedX = -Math.Abs(prevspeedX);
                         walljumped = true;
                     }
-                    if (hitright && !walljumped && !onAPlatform)
+                    if ((hitleftwall && !walljumped && !onAPlatform) || (hitrightplatform && !walljumped && !onAPlatform))
                     {
                         speedY = -jumpspeed;
-                        speedX = Math.Abs(prevspeedX);
+                        //speedX = Math.Abs(prevspeedX);
                         walljumped = true;
                     }
                 }
 
-                if (ks.IsKeyDown(Keys.D) && position.X < rightbounds && !hitleftplatform)
+                if (ks.IsKeyDown(Keys.D) && position.X < rightbounds && !hitrightwall && !hitleftplatform)
                 {
                     if (speedX < maxspeed)
                     {
@@ -195,7 +193,7 @@ namespace Platformer
                         //speedX = maxspeed;
                     }
                 }
-                else if (ks.IsKeyDown(Keys.A) && position.X > leftbounds && !hitrightplatform)
+                else if (ks.IsKeyDown(Keys.A) && position.X > leftbounds && !hitleftwall && !hitrightplatform)
                 {
                     if (speedX > -maxspeed)
                     {
@@ -205,16 +203,6 @@ namespace Platformer
                     {
                         //speedX = -maxspeed;
                     }
-                }
-                else if (position.X < leftbounds && !grounded)
-                {
-                    speedX = 0;
-                    hitright = true;
-                }
-                else if (position.X > rightbounds && !grounded)
-                {
-                    speedX = 0;
-                    hitleft = true;
                 }
                 else if (speedX < 0 && grounded)
                 {
@@ -228,6 +216,16 @@ namespace Platformer
                 {
                     speedX = 0;
                     prevspeedX = 0;
+                }
+                if (position.X <= leftbounds && !grounded && !walljumped)
+                {
+                    //speedX = 0;
+                    hitleftwall = true;
+                }
+                else if (position.X >= rightbounds && !grounded && !walljumped)
+                {
+                    //speedX = 0;
+                    hitrightwall = true;
                 }
             }
             else
@@ -243,13 +241,14 @@ namespace Platformer
             if (position.X > leftbounds)
             {
                 justhit = false;
-                hitright = false;
+                hitleftwall = false;
             }
             if (position.X < rightbounds)
             {
                 justhit = false;
-                hitleft = false;
+                hitrightwall = false;
             }
+
 
             if (!grounded)
             {
