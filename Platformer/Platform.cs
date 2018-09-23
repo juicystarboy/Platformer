@@ -21,9 +21,9 @@ namespace Platformer
         public Rectangle left;
         public Rectangle right;
         public Rectangle hitbox;
-        
+
         Texture2D texture;
-        public Platform(int width, int height, int x, int y, int endx, Texture2D texture)
+        public Platform(int width, int height, int x, int y, Texture2D texture)
         {
             this.width = width;
             this.height = height;
@@ -34,7 +34,7 @@ namespace Platformer
             bottom = new Rectangle(x * 50, y * 50 + height * 50, width * 50, 2);
             left = new Rectangle(x * 50 - 30, y * 50 + 4, 2, height * 50 - 4);
             right = new Rectangle(x * 50 + width * 50 + 30, y * 50 + 4, 2, height * 50 - 4);
-            hitbox = new Rectangle((x-2) * 50, y * 50, (width+4) * 50, height * 50);
+            hitbox = new Rectangle((x - 1) * 50, (int)((y - 0.5) * 50), (width + 2) * 50, (height + 1) * 50);
         }
         public void draw(SpriteBatch spritebatch)
         {

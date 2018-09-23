@@ -36,7 +36,7 @@ namespace Platformer
         Rectangle standinghitbox;
         public bool onAPlatform = false;
         public bool wasOnPlatform = false;
-        public bool alwayscrouch;
+        public bool alwayscrouch = true;
 
         public Character(Texture2D forward, Texture2D backward, Texture2D forwardcrouching, Texture2D backwardcrouching, Vector2 position, Color color, List<Rectangle> frames, Vector4 hitboxoffset, int framedelayamount) : base(forward, backward, forwardcrouching, backwardcrouching, position, color, frames, hitboxoffset, framedelayamount)
         {
@@ -160,12 +160,14 @@ namespace Platformer
             elapsedGameTime += gameTime.ElapsedGameTime;
             if (position.X + speedX >= leftbounds - 10 && position.X + speedX <= rightbounds + 10)
             {
+                prevspeedX = speedX;
                 if (ks.IsKeyDown(Keys.Space) && !lastks.IsKeyDown(Keys.Space))
                 {
                     groundY = 0;
                     if (grounded)
                     {
                         speedY = -jumpspeed;
+                        speedX = prevspeedX;
                         grounded = false;
                     }
                     if ((hitrightwall && !walljumped && !onAPlatform) || (hitleftplatform && !walljumped && !onAPlatform))
@@ -230,11 +232,11 @@ namespace Platformer
             }
             else
             {
-                if (!justhit && !grounded)
-                {
-                    prevspeedX = speedX;
-                    justhit = true;
-                }
+                //if (!justhit && !grounded)
+                //{
+                //    prevspeedX = speedX;
+                //    justhit = true;
+                //}
                 speedX = 0;
             }
 
