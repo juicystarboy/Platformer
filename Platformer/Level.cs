@@ -22,7 +22,7 @@ namespace Platformer
 
         int scale = 1;
 
-        public void LoadLevel(Texture2D platformpiece)
+        public void LoadLevel(Texture2D platformpiece,int score)
         {
             rand = new Random();
             reachableplatforms = new List<int>();

@@ -13,17 +13,19 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin stick figure sprite sheet 50%.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
+#begin big.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:stick figure sprite sheet 50%.png
+/processorParam:TextureFormat=Compressed
+/build:big.spritefont
+
+#begin File.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:File.spritefont;title.spritefont
 
 #begin font.spritefont
 /importer:FontDescriptionImporter
@@ -31,18 +33,6 @@
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
 /build:font.spritefont
-
-#begin stick figure sprite sheet 50% backward.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:stick figure sprite sheet 50% backward.png
 
 #begin platform piece.png
 /importer:TextureImporter
@@ -68,6 +58,18 @@
 /processorParam:TextureFormat=Color
 /build:stick figure sprite sheet 50% backward crouching.png
 
+#begin stick figure sprite sheet 50% backward.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:stick figure sprite sheet 50% backward.png
+
 #begin stick figure sprite sheet 50% crouching.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -80,10 +82,15 @@
 /processorParam:TextureFormat=Color
 /build:stick figure sprite sheet 50% crouching.png
 
-#begin big.spritefont
-/importer:FontDescriptionImporter
-/processor:FontDescriptionProcessor
+#begin stick figure sprite sheet 50%.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
 /processorParam:PremultiplyAlpha=True
-/processorParam:TextureFormat=Compressed
-/build:big.spritefont
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:stick figure sprite sheet 50%.png
 

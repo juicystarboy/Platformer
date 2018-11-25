@@ -21,12 +21,16 @@ namespace Platformer
         Character character;
         SpriteFont font;
         SpriteFont big;
+        SpriteFont title;
         Texture2D platformpiece;
 
         Level currentLevel;
         List<Level> levels;
+        List<Rectangle> levelboxes;
         bool canreset = true;
         float LavaY = 0f;
+        float Lavaspeed = 0.5f;
+        bool levelstart = false;
         bool win = false;
         bool lose = false;
         int score = 0;
@@ -41,6 +45,7 @@ namespace Platformer
         int db = 1;
         int dc = 1;
 
+        MouseState lastMs;
         MouseState ms;
 
         bool debug = false;
@@ -78,6 +83,7 @@ namespace Platformer
             // Create a new SpriteBatch, which can be used to draw textures.
             currentLevel = new Level();
             levels = new List<Level>();
+            levelboxes = new List<Rectangle>();
             spriteBatch = new SpriteBatch(GraphicsDevice);
             charspritesheet = Content.Load<Texture2D>("stick figure sprite sheet 50%");
             charspritesheetbackward = Content.Load<Texture2D>("stick figure sprite sheet 50% backward");
@@ -101,7 +107,7 @@ namespace Platformer
             }
             character = new Character(charspritesheet, charspritesheetbackward, charspritesheetcrouch, charspritesheetbackwardcrouch, new Vector2(100, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, new Vector4(30, 5, 30, 0), 0); //new Vector4(30, 0, 30, 0)
 
-            currentLevel.LoadLevel(platformpiece);
+            currentLevel.LoadLevel(platformpiece, score);
             levels.Add(currentLevel);
 
 
@@ -167,6 +173,7 @@ namespace Platformer
 
             font = Content.Load<SpriteFont>("font");
             big = Content.Load<SpriteFont>("big");
+            title = Content.Load<SpriteFont>("title");
             // TODO: use this.Content to load your game content here
         }
 
@@ -191,18 +198,20 @@ namespace Platformer
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
+            lastMs = ms;
             ms = Mouse.GetState();
 
             //character.speedX = 0;
 
             if (character.hitbox.Intersects(currentLevel.box)) { gotbox = true; currentLevel.box = new Rectangle(0, 0, 0, 0); }
 
-            if (!win && !lose)
+            if (!win && !lose && levelstart)
             {
                 character.Update(gameTime, currentLevel.platforms);
                 if (!debug)
                 {
-                    LavaY += 0.5f;
+                    Lavaspeed = (float)(2.0f / (1 + 3f * (Math.Exp(-0.1f * score)))); //(2.0f - 2.5f / (1.5f * (score + 1.0f)));
+                    LavaY += Lavaspeed;
                 }
             }
             if (Keyboard.GetState().IsKeyDown(Keys.N) && character.whymode || (Keyboard.GetState().IsKeyDown(Keys.R) && canreset))
@@ -212,7 +221,7 @@ namespace Platformer
                 lose = false;
                 gotbox = false;
                 currentLevel = new Level();
-                currentLevel.LoadLevel(platformpiece);
+                currentLevel.LoadLevel(platformpiece, score);
                 levels.Add(currentLevel);
                 font = Content.Load<SpriteFont>("Font");
                 if (!character.whymode)
@@ -271,172 +280,176 @@ namespace Platformer
         int p = 0;
         int q = 0;
 
+        string titletext = "Platformer XD";
+
+        void startscreen()
+        {
+            colorcycle();
+            GraphicsDevice.Clear(new Color(r, g, b));
+            IsMouseVisible = true;
+            Rectangle startbutton = new Rectangle(750, 650, 420, 150);
+            spriteBatch.Draw(platformpiece, startbutton, new Color(255 - r, 255 - g, 255 - b));
+            spriteBatch.DrawString(big, "start", new Vector2(startbutton.X + startbutton.Width / 2 - big.MeasureString("start").X / 2, startbutton.Y + startbutton.Height / 2 - big.MeasureString("start").Y / 2), new Color(r, g, b));
+            spriteBatch.DrawString(title, titletext, new Vector2(960 - title.MeasureString(titletext).X / 2, 250), new Color(255 - r, 255 - g, 255 - b));
+            if (startbutton.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed)
+            {
+                levelstart = true;
+            }
+        }
+
+        void loadoldlevel(int levelnum)
+        {
+            LavaY = 0;
+            win = false;
+            lose = false;
+            gotbox = false;
+            currentLevel = levels[levelnum];
+            //levels.Add(currentLevel);
+            font = Content.Load<SpriteFont>("Font");
+            if (!character.whymode)
+            {
+                character = new Character(charspritesheet, charspritesheetbackward, charspritesheetcrouch, charspritesheetbackwardcrouch, new Vector2(100, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, new Vector4(30, 5, 30, 0), 0); //new Vector4(30, 0, 30, 0)
+            }
+        }
+
+        void levelscreen()
+        {
+            IsMouseVisible = true;
+            if (levels.Count > 54)
+            {
+                spriteBatch.DrawString(big, "next page", new Vector2(1650, 1000), Color.Black);
+                Rectangle next = new Rectangle(1650, 1000, (int)big.MeasureString("next page").X, (int)big.MeasureString("next page").Y);
+                spriteBatch.DrawString(big, "previous page", new Vector2(50, 1000), Color.Black);
+                Rectangle previous = new Rectangle(50, 1000, (int)big.MeasureString("previous page").X, (int)big.MeasureString("previous page").Y);
+                spriteBatch.DrawString(big, (p + 1).ToString(), new Vector2(920 - (int)(big.MeasureString((p + 1).ToString()).X / 2.0), 1000), Color.Black);
+
+                if (next.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed)
+                {
+                    if (p < levels.Count / 54)
+                    {
+                        q = p + 1;
+                        levelboxes.Clear();
+                    }
+                }
+                if (!next.Contains(ms.Position) || ms.LeftButton != ButtonState.Pressed)
+                {
+                    p = q;
+                }
+                if (previous.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed)
+                {
+                    if (p > 0)
+                    {
+                        q = p - 1;
+                        levelboxes.Clear();
+                    }
+                }
+                if (!previous.Contains(ms.Position) && ms.LeftButton != ButtonState.Pressed)
+                {
+                    p = q;
+                }
+            }
+
+            int k = 0;
+            int l = 0;
+            spriteBatch.DrawString(font, controls, new Vector2(GraphicsDevice.Viewport.Width - font.MeasureString(controls).X - 20, 20), Color.White);
+            levelboxes.Clear();
+            for (int j = 0 + 54 * p; j < levels.Count && j < 54 + 54 * p; j++)
+            {
+                levelboxes.Add(new Rectangle(19 + 211 * k, 200 + 127 * l, 192, 108));
+                if (levels[j].win)
+                {
+                    spriteBatch.Draw(platformpiece, levelboxes[levelboxes.Count - 1], Color.Green);
+                }
+                else if (levels[j].lose)
+                {
+                    spriteBatch.Draw(platformpiece, levelboxes[levelboxes.Count - 1], Color.Firebrick);
+                }
+                else
+                {
+                    spriteBatch.Draw(platformpiece, levelboxes[levelboxes.Count - 1], Color.Yellow);
+                }
+
+                levels[j].Createlist(19 + 211 * k, 200 + 127 * l, 5);
+                for (int w = 0; w < levels[j].level.Count; w++)
+                {
+                    spriteBatch.Draw(platformpiece, new Rectangle(levels[j].level[w].X, levels[j].level[w].Y, levels[j].level[w].Width, levels[j].level[w].Height), Color.Black);
+                }
+                k++;
+                if (k >= 9)
+                {
+                    k = 0;
+                    l++;
+                }
+            }
+
+            for (int r = 0; r < levels.Count; r++)
+            {
+                if (levelboxes[r].Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed && lastMs.LeftButton != ButtonState.Pressed)
+                {
+                    loadoldlevel(r + 54 * p);
+                    break;
+                }
+            }
+        }
+
+        void won()
+        {
+            GraphicsDevice.Clear(Color.Green);
+            spriteBatch.Draw(platformpiece, new Rectangle(0, 180, 1920, 900), Color.Gray);
+            spriteBatch.DrawString(big, "You win! Press R to play again", new Vector2((GraphicsDevice.Viewport.Width - big.MeasureString("You win! Press R to play again").X) / 2, 50), Color.White);
+            if (!win)
+            {
+                score++;
+            }
+            win = true;
+            currentLevel.win = true;
+
+            levelscreen();
+        }
+
+        void lost()
+        {
+            GraphicsDevice.Clear(Color.Firebrick);
+            spriteBatch.Draw(platformpiece, new Rectangle(0, 180, 1920, 900), Color.Gray);
+            spriteBatch.DrawString(big, "Ouchie ouch you got got by the lava. Press R to try again", new Vector2((GraphicsDevice.Viewport.Width - big.MeasureString("Ouchie ouch you got got by the lava. Press R to try again").X) / 2, 50), Color.White);
+            if (!lose && score > 0)
+            {
+                score--;
+            }
+            lose = true;
+            currentLevel.lose = true;
+
+            levelscreen();
+        }
+
+
         protected override void Draw(GameTime gameTime)
         {
-            if ((((character.hitbox.Y + character.hitbox.Height - 15 <= currentLevel.highestplatformY * 50) && character.onAPlatform) || win) && !debug && gotbox)
+            spriteBatch.Begin();
+
+            if (!levelstart)
             {
-                GraphicsDevice.Clear(Color.Green);
-                spriteBatch.Begin();
-                spriteBatch.Draw(platformpiece, new Rectangle(0, 180, 1920, 900), Color.Gray);
-                spriteBatch.DrawString(big, "You win! Press R to play again", new Vector2((GraphicsDevice.Viewport.Width - big.MeasureString("You win! Press R to play again").X) / 2, 50), Color.White);
-                if (!win)
-                {
-                    score++;
-                }
-                win = true;
-                levels[levels.Count - 1].win = true;
-
-                IsMouseVisible = true;
-                if (levels.Count > 54)
-                {
-                    spriteBatch.DrawString(big, "next page", new Vector2(1650, 1000), Color.Black);
-                    Rectangle next = new Rectangle(1650, 1000, (int)big.MeasureString("next page").X, (int)big.MeasureString("next page").Y);
-                    spriteBatch.DrawString(big, "previous page", new Vector2(50, 1000), Color.Black);
-                    Rectangle previous = new Rectangle(50, 1000, (int)big.MeasureString("previous page").X, (int)big.MeasureString("previous page").Y);
-                    spriteBatch.DrawString(big, (p + 1).ToString(), new Vector2(920 - (int)(big.MeasureString((p + 1).ToString()).X / 2.0), 1000), Color.Black);
-
-                    if (next.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed)
-                    {
-                        if (p < levels.Count / 54)
-                        {
-                            q = p + 1;
-                        }
-                    }
-                    if (!next.Contains(ms.Position) || ms.LeftButton != ButtonState.Pressed)
-                    {
-                        p = q;
-                    }
-                    if (previous.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed)
-                    {
-                        if (p > 0)
-                        {
-                            q = p - 1;
-                        }
-                    }
-                    if (!previous.Contains(ms.Position) && ms.LeftButton != ButtonState.Pressed)
-                    {
-                        p = q;
-                    }
-                }
-
-                int k = 0;
-                int l = 0;
-                spriteBatch.DrawString(font, controls, new Vector2(GraphicsDevice.Viewport.Width - font.MeasureString(controls).X - 20, 20), Color.White);
-                for (int j = 0 + 54 * p; j < levels.Count && j < 54 + 54 * p; j++)
-                {
-                    if (levels[j].win)
-                    {
-                        spriteBatch.Draw(platformpiece, new Rectangle(19 + 211 * k, 200 + 127 * l, 192, 108), Color.Green);
-                    }
-                    else if (levels[j].lose)
-                    {
-                        spriteBatch.Draw(platformpiece, new Rectangle(19 + 211 * k, 200 + 127 * l, 192, 108), Color.Firebrick);
-                    }
-                    else
-                    {
-                        spriteBatch.Draw(platformpiece, new Rectangle(19 + 211 * k, 200 + 127 * l, 192, 108), Color.Yellow);
-                    }
-
-                    levels[j].Createlist(19 + 211 * k, 200 + 127 * l, 5);
-                    for (int w = 0; w < levels[j].level.Count; w++)
-                    {
-                        spriteBatch.Draw(platformpiece, new Rectangle(levels[j].level[w].X, levels[j].level[w].Y, levels[j].level[w].Width, levels[j].level[w].Height), Color.Black);
-                    }
-                    k++;
-                    if (k >= 9)
-                    {
-                        k = 0;
-                        l++;
-                    }
-                }
+                startscreen();
+            }
+            else if ((((character.hitbox.Y + character.hitbox.Height - 15 <= currentLevel.highestplatformY * 50) && character.onAPlatform) || win) && !debug && gotbox)
+            {
+                won();
             }
             else if (((character.hitbox.Y + character.hitbox.Height >= GraphicsDevice.Viewport.Height - LavaY + 110) || lose) && !debug)
             {
-                GraphicsDevice.Clear(Color.Firebrick);
-                spriteBatch.Begin();
-                spriteBatch.Draw(platformpiece, new Rectangle(0, 180, 1920, 900), Color.Gray);
-                spriteBatch.DrawString(big, "Ouchie ouch you got got by the lava. Press R to try again", new Vector2((GraphicsDevice.Viewport.Width - big.MeasureString("Ouchie ouch you got got by the lava. Press R to try again").X) / 2, 50), Color.White);
-                score = 0;
-                lose = true;
-                levels[levels.Count - 1].lose = true;
-
-                IsMouseVisible = true;
-                if (levels.Count > 54)
-                {
-                    spriteBatch.DrawString(big, "next page", new Vector2(1650, 1000), Color.Black);
-                    Rectangle next = new Rectangle(1650, 1000, (int)big.MeasureString("next page").X, (int)big.MeasureString("next page").Y);
-                    spriteBatch.DrawString(big, "previous page", new Vector2(50, 1000), Color.Black);
-                    Rectangle previous = new Rectangle(50, 1000, (int)big.MeasureString("previous page").X, (int)big.MeasureString("previous page").Y);
-                    spriteBatch.DrawString(big, (p + 1).ToString(), new Vector2(920 - (int)(big.MeasureString((p + 1).ToString()).X / 2.0), 1000), Color.Black);
-
-                    if (next.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed)
-                    {
-                        if (p < levels.Count / 54)
-                        {
-                            q = p + 1;
-                        }
-                    }
-                    if (!next.Contains(ms.Position) || ms.LeftButton != ButtonState.Pressed)
-                    {
-                        p = q;
-                    }
-                    if (previous.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed)
-                    {
-                        if (p > 0)
-                        {
-                            q = p - 1;
-                        }
-                    }
-                    if (!previous.Contains(ms.Position) && ms.LeftButton != ButtonState.Pressed)
-                    {
-                        p = q;
-                    }
-                }
-
-                int k = 0;
-                int l = 0;
-                spriteBatch.DrawString(font, controls, new Vector2(GraphicsDevice.Viewport.Width - font.MeasureString(controls).X - 20, 20), Color.White);
-                for (int j = 0 + 54 * p; j < levels.Count && j < 54 + 54 * p; j++)
-                {
-                    if (levels[j].win)
-                    {
-                        spriteBatch.Draw(platformpiece, new Rectangle(19 + 211 * k, 200 + 127 * l, 192, 108), Color.Green);
-                    }
-                    else if (levels[j].lose)
-                    {
-                        spriteBatch.Draw(platformpiece, new Rectangle(19 + 211 * k, 200 + 127 * l, 192, 108), Color.Firebrick);
-                    }
-                    else
-                    {
-                        spriteBatch.Draw(platformpiece, new Rectangle(19 + 211 * k, 200 + 127 * l, 192, 108), Color.Yellow);
-                    }
-
-                    levels[j].Createlist(19 + 211 * k, 200 + 127 * l, 5);
-                    for (int w = 0; w < levels[j].level.Count; w++)
-                    {
-                        spriteBatch.Draw(platformpiece, new Rectangle(levels[j].level[w].X, levels[j].level[w].Y, levels[j].level[w].Width, levels[j].level[w].Height), Color.Black);
-                    }
-                    k++;
-                    if (k >= 9)
-                    {
-                        k = 0;
-                        l++;
-                    }
-                }
+                lost();
             }
             else
             {
                 colorcycle();
                 GraphicsDevice.Clear(new Color(r, g, b));
-                spriteBatch.Begin();
+                IsMouseVisible = false;
             }
-            //spriteBatch.DrawString(font, character.speedX.ToString(), new Vector2(0, 0), Color.White);
-            /*spriteBatch.DrawString(font, (amountofplatforms+1).ToString(), new Vector2(0, 12), Color.White);
-            spriteBatch.DrawString(font, highestplatformY.ToString(), new Vector2(0, 24), Color.White);*/
+
             spriteBatch.DrawString(big, score.ToString(), new Vector2(15, 0), Color.White);
 
             int c = 0;
-            if (!win && !lose)
+            if (!win && !lose && levelstart)
             {
                 foreach (Platform p in currentLevel.platforms)
                 {
@@ -456,7 +469,6 @@ namespace Platformer
             }
 
 
-
             if (debug)
             {
                 foreach (Rectangle r in currentLevel.phits)
@@ -464,6 +476,7 @@ namespace Platformer
                     spriteBatch.Draw(platformpiece, r, Color.Red * 0.40f);
                 }
                 if (debug) spriteBatch.DrawString(font, $"right wall: {character.hitrightwall}, left wall: {character.hitleftwall}, left of platform: {character.hitleftplatform}, right of platform: {character.hitrightplatform}, top: {character.onPlatform}", new Vector2(100, 100), Color.White);
+                spriteBatch.DrawString(font, Lavaspeed.ToString(), new Vector2(200, 200), Color.Black);
             }
             //spriteBatch.Draw(platformpiece, character.hitbox, null, Color.OrangeRed);
 
