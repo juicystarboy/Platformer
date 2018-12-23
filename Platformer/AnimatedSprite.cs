@@ -15,7 +15,7 @@ namespace Platformer
         public int currentframe;
         public int framedelay = 0;
         public int framedelayamount = 5;
-        public AnimatedSprite(Texture2D forward, Texture2D backward, Texture2D forwardcrouching, Texture2D backwardcrouching, Vector2 position, Color color, List<Rectangle> frames, Vector4 hitboxoffset, int framedelayamount) : base(forward, backward, forwardcrouching, backwardcrouching, position, color)
+        public AnimatedSprite(Texture2D forward, Texture2D backward, Texture2D forwardcrouching, Texture2D backwardcrouching, Vector2 position, Color color, List<Rectangle> frames, Vector4 hitboxoffset, int framedelayamount) : base(forward, backward, forwardcrouching, backwardcrouching, position, hitboxoffset, color)
         {
             this.frames = frames;
             this.hitboxoffset = hitboxoffset;

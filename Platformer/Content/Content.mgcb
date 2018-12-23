@@ -58,6 +58,18 @@
 /processorParam:TextureFormat=Color
 /build:stick figure sprite sheet 50% backward crouching.png
 
+#begin stick figure sprite sheet 50% backward super crouching.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:stick figure sprite sheet 50% backward super crouching.png
+
 #begin stick figure sprite sheet 50% backward.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -81,6 +93,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:stick figure sprite sheet 50% crouching.png
+
+#begin stick figure sprite sheet 50% super crouching.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:stick figure sprite sheet 50% super crouching.png
 
 #begin stick figure sprite sheet 50%.png
 /importer:TextureImporter

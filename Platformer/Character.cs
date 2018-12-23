@@ -36,12 +36,13 @@ namespace Platformer
         Rectangle standinghitbox;
         public bool onAPlatform = false;
         public bool wasOnPlatform = false;
-        public bool alwayscrouch = true;
+        public bool alwayscrouch = false;
+
 
         public Character(Texture2D forward, Texture2D backward, Texture2D forwardcrouching, Texture2D backwardcrouching, Vector2 position, Color color, List<Rectangle> frames, Vector4 hitboxoffset, int framedelayamount) : base(forward, backward, forwardcrouching, backwardcrouching, position, color, frames, hitboxoffset, framedelayamount)
         {
             this.hitboxoffset = hitboxoffset;
-            initialY = (int)position.Y;
+            initialY = (int)position.Y + (int)hitboxoffset.Y + (int)hitboxoffset.W;
 
         }
 
@@ -98,7 +99,7 @@ namespace Platformer
                         speedY = 0;
                     }
                 }
-                else if (ks.IsKeyDown(Keys.A) && position.X > leftbounds)
+                else if ((ks.IsKeyDown(Keys.A) || ks.IsKeyDown(Keys.Left)) && position.X > leftbounds)
                 {
                     if (p.onplatform)
                     {
@@ -109,7 +110,7 @@ namespace Platformer
                     }
 
                 }
-                else if (ks.IsKeyDown(Keys.D) && position.X < rightbounds)
+                else if ((ks.IsKeyDown(Keys.D) || ks.IsKeyDown(Keys.Right)) && position.X < rightbounds)
                 {
                     if (p.onplatform)
                     {
@@ -139,7 +140,7 @@ namespace Platformer
             }
             wasOnPlatform = onAPlatform;
             cantcrouch = false;
-            standinghitbox = new Rectangle(hitbox.X, hitbox.Y - (int)hitboxoffset.Y, hitbox.Width, hitbox.Height + (int)hitboxoffset.Y);
+            standinghitbox = new Rectangle(hitbox.X, hitbox.Y - (int)hitboxoffset.Y + 55, hitbox.Width, hitbox.Height + (int)hitboxoffset.Y - 55);
             foreach (Platform b in platform)
             {
                 if (standinghitbox.Intersects(b.bottom))
@@ -147,21 +148,21 @@ namespace Platformer
                     cantcrouch = true;
                 }
             }
-            if (ks.IsKeyDown(Keys.LeftShift) || ks.CapsLock || alwayscrouch)
+            if (ks.IsKeyDown(Keys.LeftShift) || ks.IsKeyDown(Keys.Down) || ks.IsKeyDown(Keys.S) || ks.CapsLock || alwayscrouch)
             {
                 crouching = true;
-                hitboxoffset.Y = 55;
+                hitboxoffset.Y = 95;
             }
             else if (!cantcrouch)
             {
                 crouching = false;
-                hitboxoffset.Y = 5;
+                hitboxoffset.Y = 55;
             }
             elapsedGameTime += gameTime.ElapsedGameTime;
             if (position.X + speedX >= leftbounds - 10 && position.X + speedX <= rightbounds + 10)
             {
                 prevspeedX = speedX;
-                if (ks.IsKeyDown(Keys.Space) && !lastks.IsKeyDown(Keys.Space))
+                if ((ks.IsKeyDown(Keys.Space) && !lastks.IsKeyDown(Keys.Space)) || (ks.IsKeyDown(Keys.Up) && !lastks.IsKeyDown(Keys.Up)) || (ks.IsKeyDown(Keys.W) && !lastks.IsKeyDown(Keys.W)))
                 {
                     groundY = 0;
                     if (grounded)
@@ -184,7 +185,7 @@ namespace Platformer
                     }
                 }
 
-                if (ks.IsKeyDown(Keys.D) && position.X < rightbounds && !hitrightwall && !hitleftplatform)
+                if ((ks.IsKeyDown(Keys.D) || ks.IsKeyDown(Keys.Right)) && position.X < rightbounds && !hitrightwall && !hitleftplatform)
                 {
                     if (speedX < maxspeed)
                     {
@@ -195,7 +196,7 @@ namespace Platformer
                         //speedX = maxspeed;
                     }
                 }
-                else if (ks.IsKeyDown(Keys.A) && position.X > leftbounds && !hitleftwall && !hitrightplatform)
+                else if ((ks.IsKeyDown(Keys.A) || ks.IsKeyDown(Keys.Left)) && position.X > leftbounds && !hitleftwall && !hitrightplatform)
                 {
                     if (speedX > -maxspeed)
                     {
@@ -266,8 +267,15 @@ namespace Platformer
                 speedY = 0;
                 walljumped = false;
             }
-
-            y += (int)speedY;
+            if (grounded)
+            {
+                speedY = 0;
+                y = groundY + 1;
+            }
+            else
+            {
+                y += (int)speedY;
+            }
 
 
             if (speedX != 0 && elapsedGameTime >= TimeSpan.FromMilliseconds(50 / speedX) && grounded)

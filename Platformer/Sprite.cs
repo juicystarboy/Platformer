@@ -15,13 +15,14 @@ namespace Platformer
         public Texture2D forwardcrouching;
         public Texture2D backwardcrouching;
         public Vector2 position;
+        public Vector4 hitboxoffset;
         public Color color;
         /*
         public float lerpAmount = .01f;
         Color invertedColor;
         Color originalColor;*/
 
-        public Sprite(Texture2D forward, Texture2D backward, Texture2D forwardcrouching, Texture2D backwardcrouching, Vector2 position, Color color)
+        public Sprite(Texture2D forward, Texture2D backward, Texture2D forwardcrouching, Texture2D backwardcrouching, Vector2 position, Vector4 hitboxoffset, Color color)
         {
             this.forward = forward;
             this.backward = backward;
@@ -29,6 +30,7 @@ namespace Platformer
             this.backwardcrouching = backwardcrouching;
             this.position = position;
             this.color = color;
+            this.hitboxoffset = hitboxoffset;
             //originalColor = color;
             //invertedColor = new Color(255 - color.R, 255 - color.G, 255 - color.B);
         }

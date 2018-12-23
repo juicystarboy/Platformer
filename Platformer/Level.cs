@@ -19,12 +19,18 @@ namespace Platformer
         public List<Rectangle> level;
         public bool win;
         public bool lose;
-
+        public int Seed { get; private set; }
+        
         int scale = 1;
-
+        
         public void LoadLevel(Texture2D platformpiece,int score)
         {
             rand = new Random();
+
+            Seed = rand.Next();
+
+            rand = new Random(Seed);            
+
             reachableplatforms = new List<int>();
             phits = new List<Rectangle>();
 
@@ -37,12 +43,13 @@ namespace Platformer
             {
                 bool valid;
                 Platform temp;
+                c = 0;
                 do
                 {
                     //create random numbers
                     temp = new Platform(rand.Next(2, 10), 1, rand.Next(0, 30), rand.Next(3, 18), platformpiece);
                     valid = true;
-                    foreach (var p in platforms)
+                    foreach (Platform p in platforms)
                     {
                         if (p.hitbox.Intersects(temp.hitbox))
                         {
@@ -56,7 +63,11 @@ namespace Platformer
                     }
                     c++;
                 } while (!valid);
-                platforms.Add(temp);
+
+                if (valid)
+                {
+                    platforms.Add(temp);
+                }
             }
             reachableplatforms.Clear();
             phits.Clear();
@@ -79,7 +90,7 @@ namespace Platformer
                     highestplatformY = platforms[i].y;
                 }
 
-                phits.Add(new Rectangle(platforms[i].x * 50, (platforms[i].y - 3) * 50, platforms[i].width * 50, (platforms[i].height + 3) * 50));
+                phits.Add(new Rectangle((platforms[i].x-1) * 50, (platforms[i].y - 3) * 50, (platforms[i].width+2) * 50, (platforms[i].height + 3) * 50));
 
                 foreach (Platform p in platforms)
                 {
