@@ -52,7 +52,7 @@ namespace Platformer
         }
 
 
-        public void Update(GameTime gameTime, List<Platform> platform)
+        public void Update(GameTime gameTime, List<Platform> platform, Keys[] keys)
         {
             lastks = ks;
             ks = Keyboard.GetState();
@@ -99,7 +99,7 @@ namespace Platformer
                         speedY = 0;
                     }
                 }
-                else if ((ks.IsKeyDown(Keys.A) || ks.IsKeyDown(Keys.Left)) && position.X > leftbounds)
+                else if (ks.IsKeyDown(keys[0]) && position.X > leftbounds)
                 {
                     if (p.onplatform)
                     {
@@ -110,7 +110,7 @@ namespace Platformer
                     }
 
                 }
-                else if ((ks.IsKeyDown(Keys.D) || ks.IsKeyDown(Keys.Right)) && position.X < rightbounds)
+                else if (ks.IsKeyDown(keys[1]) && position.X < rightbounds)
                 {
                     if (p.onplatform)
                     {
@@ -148,7 +148,23 @@ namespace Platformer
                     cantcrouch = true;
                 }
             }
-            if (ks.IsKeyDown(Keys.LeftShift) || ks.IsKeyDown(Keys.Down) || ks.IsKeyDown(Keys.S) || ks.CapsLock || alwayscrouch)
+
+            if(keys[4] != Keys.CapsLock)
+            {
+                if (ks.IsKeyDown(keys[4]) && ks!=lastks)
+                {
+                    if (!alwayscrouch)
+                    {
+                        alwayscrouch = true;
+                    }
+                    else
+                    {
+                        alwayscrouch = false;
+                    }
+                }
+            }
+
+            if (ks.IsKeyDown(keys[3]) || ks.CapsLock || alwayscrouch)
             {
                 crouching = true;
                 hitboxoffset.Y = 95;
@@ -162,7 +178,7 @@ namespace Platformer
             if (position.X + speedX >= leftbounds - 10 && position.X + speedX <= rightbounds + 10)
             {
                 prevspeedX = speedX;
-                if ((ks.IsKeyDown(Keys.Space) && !lastks.IsKeyDown(Keys.Space)) || (ks.IsKeyDown(Keys.Up) && !lastks.IsKeyDown(Keys.Up)) || (ks.IsKeyDown(Keys.W) && !lastks.IsKeyDown(Keys.W)))
+                if (ks.IsKeyDown(keys[2]) && !lastks.IsKeyDown(keys[2]))
                 {
                     groundY = 0;
                     if (grounded)
@@ -185,7 +201,7 @@ namespace Platformer
                     }
                 }
 
-                if ((ks.IsKeyDown(Keys.D) || ks.IsKeyDown(Keys.Right)) && position.X < rightbounds && !hitrightwall && !hitleftplatform)
+                if (ks.IsKeyDown(keys[1]) && position.X < rightbounds && !hitrightwall && !hitleftplatform)
                 {
                     if (speedX < maxspeed)
                     {
@@ -196,7 +212,7 @@ namespace Platformer
                         //speedX = maxspeed;
                     }
                 }
-                else if ((ks.IsKeyDown(Keys.A) || ks.IsKeyDown(Keys.Left)) && position.X > leftbounds && !hitleftwall && !hitrightplatform)
+                else if (ks.IsKeyDown(keys[0])&& position.X > leftbounds && !hitleftwall && !hitrightplatform)
                 {
                     if (speedX > -maxspeed)
                     {
@@ -296,11 +312,11 @@ namespace Platformer
                 currentframe = 70;
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.O))
+            if (Keyboard.GetState().IsKeyDown(keys[6]))
             {
                 whymode = true;
             }
-            if (Keyboard.GetState().IsKeyDown(Keys.P))
+            if (Keyboard.GetState().IsKeyDown(keys[7]))
             {
                 whymode = false;
             }
