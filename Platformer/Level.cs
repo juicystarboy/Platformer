@@ -22,12 +22,15 @@ namespace Platformer
         public int Seed { get; private set; }
         
         int scale = 1;
-        
-        public void LoadLevel(Texture2D platformpiece,int score)
-        {
-            rand = new Random();
 
-            Seed = rand.Next();
+        public void LoadLevel(Texture2D platformpiece, int score)
+        {
+            LoadLevel(platformpiece, score, new Random().Next());
+        }
+
+        public void LoadLevel(Texture2D platformpiece,int score, int seed)
+        {            
+            Seed = seed;
 
             rand = new Random(Seed);            
 
