@@ -34,6 +34,10 @@ namespace Platformer
         bool inlevelscreen;
         bool inoptionscreen;
         bool inlevel;
+        bool insurescreen;
+
+        bool wasinlevelscreen;
+        bool wasinstartscreen;
 
         string titletext = "Platformer XD";
 
@@ -43,6 +47,7 @@ namespace Platformer
         bool canreset = true;
         float LavaY = 0f;
         float Lavaspeed = 0.5f;
+        const int LavaStartY = 150;
         bool win = false;
         bool lose = false;
 
@@ -56,7 +61,6 @@ namespace Platformer
         int dr = 1;
         int dg = 1;
         int db = 1;
-        int dc = 1;
 
         MouseState lastMs;
         MouseState ms;
@@ -71,11 +75,8 @@ namespace Platformer
             graphics.PreferredBackBufferHeight = 1080;
             graphics.PreferredBackBufferWidth = 1920;
             Window.Position = new Point(0, 0);
-            //graphics.IsFullScreen = true;
             Window.IsBorderless = true;
             Content.RootDirectory = "Content";
-
-
         }
 
         /// <summary>
@@ -91,21 +92,30 @@ namespace Platformer
             base.Initialize();
         }
 
+        string saveString;
+
         /// <summary>
         /// LoadContent will be called once per game and is the place to load
         /// all of your content.
         /// </summary>
         protected override void LoadContent()
         {
-            string saveString = File.ReadAllText("saveFile.txt");
-
-            save = JsonConvert.DeserializeObject<SaveData>(saveString);
-            if (save == null)
+            if (File.Exists("saveFile.txt"))
             {
-                save = new SaveData();
+                saveString = File.ReadAllText("saveFile.txt");
+
+                save = JsonConvert.DeserializeObject<SaveData>(saveString);
+                if (save == null)
+                {
+                    save = new SaveData();
+                }
+            }
+            else
+            {
+                File.Create("saveFile.txt");
             }
 
-            // Create a new SpriteBatch, which can be used to draw textures.
+            
             currentLevel = new Level();
             levels = new List<Level>();
             levelboxes = new List<Rectangle>();
@@ -136,76 +146,18 @@ namespace Platformer
             }
             character = new Character(charspritesheet, charspritesheetbackward, charspritesheetcrouch, charspritesheetbackwardcrouch, new Vector2(100, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, charhitboxoffset, 0); //new Vector4(30, 0, 30, 0)
 
-            loadsave();
-
-            currentLevel.LoadLevel(platformpiece, save.Score);
-            levels.Add(currentLevel);
-
-
-            #region old stuff
-            /*
-            for (int i = 0; i <= amountofplatforms; i++)
-            {
-                bool valid = false;
-
-                while (!valid)
-                {
-                    valid = true;
-                    randwidth = rand.Next(1, 10);
-                    randx = rand.Next(0, 30);
-                    randy = 17; //rand.Next(1, 10) * 1;
-                    endx = randx + randwidth;
-                    platformonlower = false;
-                    foreach (Platform p in platform)
-                    {
-                        /*if (randx <= p.endx + 1 && randx >= p.x - 1 && randy == p.y)
-                        {
-                            randwidth = rand.Next(1, 10);
-                            randx = rand.Next(1, 30);
-                            endx = randx + randwidth;
-                            valid = false;
-                        }
-                        else if (endx > p.x - 1 && endx < p.endx + 1 && randy == p.y)
-                        {
-                            randwidth = rand.Next(1, 10);
-                            randx = rand.Next(1, 30);
-                            endx = randx + randwidth;
-                            valid = false;
-                        }/
-                        if (p.y == 17)
-                        {
-                            platformonlower = true;
-                        }
-                        if (new Rectangle((randx - 1) * 50, randy * 50, (randwidth + 2) * 50, 1).Intersects(p.hitbox))
-                        {
-                            valid = false;
-                            randwidth = rand.Next(1, 10);
-                            randx = rand.Next(1, 30);
-                            randy = rand.Next(3, 17);
-                            endx = randx + randwidth;
-                        }
-                        else
-                        {
-                            valid = true;
-                        }
-                    }
-                    if (!platformonlower)
-                    {
-                        randy = 17;
-                    }
-                }
-                platform.Add(new Platform(randwidth, 1, randx, randy, endx, platformpiece));
-            }
-*/
-            #endregion
-
-
-
 
             font = Content.Load<SpriteFont>("font");
             big = Content.Load<SpriteFont>("big");
             title = Content.Load<SpriteFont>("title");
-            // TODO: use this.Content to load your game content here
+
+            instartscreen = true;
+            inlevelscreen = false;
+            inoptionscreen = false;
+            inlevel = false;
+            insurescreen = false;
+
+            loadsave();
         }
 
 
@@ -218,12 +170,7 @@ namespace Platformer
             //loop through Levels and save everything to save.Levels
             savegame();
         }
-
-        /// <summary>
-        /// Allows the game to run logic such as updating the world,
-        /// checking for collisions, gathering input, and playing audio.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        
         protected override void Update(GameTime gameTime)
         {
 
@@ -233,8 +180,6 @@ namespace Platformer
             lastMs = ms;
             ms = Mouse.GetState();
 
-            //character.speedX = 0;
-
             if (character.hitbox.Intersects(currentLevel.box)) { gotbox = true; }
 
             if (!win && !lose && inlevel)
@@ -242,10 +187,11 @@ namespace Platformer
                 character.Update(gameTime, currentLevel.platforms, keys);
                 if (!debug)
                 {
-                    Lavaspeed = (float)(2.0f / (1 + 3f * (Math.Exp(-0.1f * save.Score)))); //(2.0f - 2.5f / (1.5f * (save.Score + 1.0f)));
+                    Lavaspeed = (float)(2.0f / (1 + 3f * (Math.Exp(-0.1f * save.Score))));
                     LavaY += Lavaspeed;
                 }
             }
+
             if ((Keyboard.GetState().IsKeyDown(keys[8]) && character.whymode || (Keyboard.GetState().IsKeyDown(keys[5]) && canreset)) && !inoptionscreen)
             {
                 reset();
@@ -254,17 +200,14 @@ namespace Platformer
                     canreset = false;
                 }
             }
-            // TODO: Add your update logic here
+
             if (!Keyboard.GetState().IsKeyDown(keys[5]) && !inoptionscreen)
             {
                 canreset = true;
             }
+
             base.Update(gameTime);
         }
-        /// <summary>
-        /// This is called when the game should draw itself.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
 
         void savegame()
         {
@@ -280,6 +223,10 @@ namespace Platformer
 
         void reset()
         {
+            inlevelscreen = false;
+            instartscreen = false;
+            inoptionscreen = false;
+            insurescreen = false;
             inlevel = true;
 
             LavaY = 0;
@@ -338,6 +285,8 @@ namespace Platformer
                 temp.lose = save.Levels[l].Lose;
                 levels.Add(temp);
             }
+            currentLevel.LoadLevel(platformpiece, save.Score);
+            levels.Add(currentLevel);
         }
 
         int p = 0;
@@ -345,6 +294,8 @@ namespace Platformer
 
         void startscreen()
         {
+            wasinstartscreen = true;
+            wasinlevelscreen = false;
             instartscreen = true;
             colorcycle();
             GraphicsDevice.Clear(new Color(r, g, b));
@@ -361,31 +312,72 @@ namespace Platformer
             spriteBatch.DrawString(big, "new", new Vector2(newbutton.X + newbutton.Width / 2 - big.MeasureString("new").X / 2, newbutton.Y + newbutton.Height / 2 - big.MeasureString("new").Y / 2), new Color(r, g, b));
             spriteBatch.DrawString(big, "X", new Vector2(exitbutton.X + exitbutton.Width / 2 - big.MeasureString("X").X / 2, exitbutton.Y + exitbutton.Height / 2 - big.MeasureString("X").Y / 2), new Color(r, g, b));
             spriteBatch.DrawString(title, titletext, new Vector2(960 - title.MeasureString(titletext).X / 2, 250), new Color(255 - r, 255 - g, 255 - b));
-            if (loadbutton.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed)
+            if (loadbutton.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed && ms.LeftButton != lastMs.LeftButton)
+            {
+                win = false;
+                lose = false;
+                instartscreen = false;
+                inlevelscreen = false;
+                inoptionscreen = false;
+                insurescreen = false;
+                inlevel = true;
+                LavaY = 0;
+                gotbox = false;
+                character = new Character(charspritesheet, charspritesheetbackward, charspritesheetcrouch, charspritesheetbackwardcrouch, new Vector2(100, GraphicsDevice.Viewport.Height - charframes[0].Height), Color.White, charframes, charhitboxoffset, 0); //new Vector4(30, 0, 30, 0
+                loadsave();
+            }
+            if (newbutton.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed && ms.LeftButton != lastMs.LeftButton)
             {
                 instartscreen = false;
                 inlevelscreen = false;
                 inoptionscreen = false;
-                inlevel = true;
-                loadsave();
+                insurescreen = true;
+                inlevel = false;
             }
-            if (newbutton.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed)
+            if (optionsbutton.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed && ms.LeftButton != lastMs.LeftButton)
+            {
+                instartscreen = false;
+                inlevelscreen = false;
+                insurescreen = false;
+                inlevel = false;
+                inoptionscreen = true;
+            }
+            if (exitbutton.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed && ms.LeftButton != lastMs.LeftButton)
+            {
+                Exit();
+            }
+        }
+
+        void surescreen()
+        {
+            GraphicsDevice.Clear(new Color(r, g, b));
+            Rectangle yes = new Rectangle(660, 600, 200, 100);
+            spriteBatch.Draw(platformpiece, yes, new Color(255 - r, 255 - g, 255 - b));
+            spriteBatch.DrawString(big, "yes", new Vector2(yes.X + yes.Width / 2 - big.MeasureString("yes").X / 2, yes.Y + yes.Height / 2 - big.MeasureString("yes").Y / 2), new Color(r, g, b));
+            Rectangle no = new Rectangle(1060, 600, 200, 100);
+            spriteBatch.Draw(platformpiece, no, new Color(255 - r, 255 - g, 255 - b));
+            spriteBatch.DrawString(big, "no", new Vector2(no.X + no.Width / 2 - big.MeasureString("no").X / 2, no.Y + no.Height / 2 - big.MeasureString("no").Y / 2), new Color(r, g, b));
+            spriteBatch.DrawString(title, "Overwrite save data?", new Vector2(960 - title.MeasureString("Overwrite save data?").X / 2, 250), new Color(255 - r, 255 - g, 255 - b));
+
+            if (yes.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed && ms.LeftButton != lastMs.LeftButton)
             {
                 save.Score = 0;
                 save.Levels.Clear();
-                if (levels.Count >= 1) { levels.RemoveRange(0, levels.Count - 1); }
+                levels.Clear();
                 instartscreen = false;
                 inlevelscreen = false;
                 inoptionscreen = false;
+                insurescreen = false;
                 inlevel = true;
+                reset();
             }
-            if (optionsbutton.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed && ms != lastMs)
+            else if (no.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed && ms.LeftButton != lastMs.LeftButton)
             {
-                inoptionscreen = true;
-            }
-            if (exitbutton.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed)
-            {
-                Exit();
+                instartscreen = true;
+                inlevelscreen = false;
+                inoptionscreen = false;
+                insurescreen = false;
+                inlevel = false;
             }
         }
 
@@ -407,6 +399,8 @@ namespace Platformer
 
         void loadoldlevel(int levelnum)
         {
+            inlevelscreen = false;
+            inlevel = true;
 
             LavaY = 0;
             win = false;
@@ -423,13 +417,19 @@ namespace Platformer
         }
 
         void levelscreen()
-       {
+        {
+            wasinlevelscreen = true;
+            wasinstartscreen = false;
             inlevelscreen = true;
-            Rectangle optionsbutton = new Rectangle(1785, 20, 100, 100);
-            if (optionsbutton.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed && ms != lastMs || inoptionscreen)
+            if (!win && !lose)
             {
+                GraphicsDevice.Clear(new Color(r, g, b));
+            }
+            Rectangle optionsbutton = new Rectangle(1785, 20, 100, 100);
+            if (optionsbutton.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed && ms.LeftButton != lastMs.LeftButton || inoptionscreen)
+            {
+                inlevelscreen = false;
                 inoptionscreen = true;
-                optionscreen();
             }
             if (!inoptionscreen)
             {
@@ -522,7 +522,6 @@ namespace Platformer
                     }
                 }
             }
-
         }
 
         void won()
@@ -608,10 +607,18 @@ namespace Platformer
                     }
                 }
             }
-            if (back.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed && ms != lastMs && !keydup)
+            if (back.Contains(ms.Position) && ms.LeftButton == ButtonState.Pressed && ms.LeftButton != lastMs.LeftButton && !keydup)
             {
-                startscreen();
-                inoptionscreen = false;
+                if (wasinstartscreen)
+                {
+                    instartscreen = true;
+                    inoptionscreen = false;
+                }
+                else if (wasinlevelscreen)
+                {
+                    inlevelscreen = true;
+                    inoptionscreen = false;
+                }
             }
         }
 
@@ -619,62 +626,69 @@ namespace Platformer
         {
             spriteBatch.Begin();
 
-            if ((GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) && ks != lastks)
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape) && ks.IsKeyDown(Keys.Escape) != lastks.IsKeyDown(Keys.Escape))
             {
                 if (instartscreen)
                 {
                     Exit();
+                }
+                else if (insurescreen)
+                {
+                    inlevelscreen = false;
+                    inoptionscreen = false;
+                    inlevel = false;
+                    instartscreen = true;
+                    insurescreen = false;
+                    startscreen();
                 }
                 else if (inlevelscreen)
                 {
                     inlevelscreen = false;
                     inoptionscreen = false;
                     inlevel = false;
-                    startscreen();
+                    instartscreen = true;
+                    insurescreen = false;
+                    savegame();
                 }
                 else if (inlevel)
                 {
                     instartscreen = false;
                     inoptionscreen = false;
                     inlevel = false;
-                    levelscreen();
+                    inlevelscreen = true;
+                    insurescreen = false;
+                    win = false;
+                    lose = false;
+                    currentLevel.win = false;
+                    currentLevel.lose = false;
+                    savegame();
                 }
             }
 
 
-            if (!inlevel && !instartscreen && !inoptionscreen)
+            if (!inlevel && !instartscreen && !inoptionscreen && !insurescreen && inlevelscreen)
             {
                 levelscreen();
             }
-            else if(!inlevel && !instartscreen && !inlevelscreen)
+            else if (!inlevel && !instartscreen && !inlevelscreen && !insurescreen && inoptionscreen)
             {
                 optionscreen();
             }
-            else if (!inlevel && !inlevelscreen && !inoptionscreen)
+            else if (!inlevel && !inlevelscreen && !inoptionscreen && !insurescreen && instartscreen)
             {
                 startscreen();
             }
-
-
-
-
-
-            if (!inlevel)
+            else if(!inlevel && !inlevelscreen && !inoptionscreen && !instartscreen && insurescreen)
             {
-                if (inoptionscreen)
-                {
-                    optionscreen();
-                }
-                else
-                {
-                    startscreen();
-                }
+                surescreen();
             }
+
+
             else if ((((character.hitbox.Y + character.hitbox.Height - 15 <= currentLevel.highestplatformY * 50) && character.onAPlatform) || win) && !debug && gotbox)
             {
                 won();
             }
-            else if (((character.hitbox.Y + character.hitbox.Height >= GraphicsDevice.Viewport.Height - LavaY + 110) || lose) && !debug)
+            else if (((character.hitbox.Y + character.hitbox.Height >= GraphicsDevice.Viewport.Height - LavaY + LavaStartY + 10) || lose) && !debug)
             {
                 lost();
             }
@@ -703,7 +717,7 @@ namespace Platformer
                     if (debug) spriteBatch.DrawString(font, $"{c++}: {p.x},{p.y} {p.width}x{p.height}", new Vector2(p.x * 50, p.y * 50), Color.White);
 
                 }
-                spriteBatch.Draw(platformpiece, new Rectangle(0, GraphicsDevice.Viewport.Height + 100 - (int)LavaY, GraphicsDevice.Viewport.Width, (int)LavaY), null, Color.OrangeRed);
+                spriteBatch.Draw(platformpiece, new Rectangle(0, GraphicsDevice.Viewport.Height + LavaStartY - (int)LavaY, GraphicsDevice.Viewport.Width, (int)LavaY), null, Color.OrangeRed);
                 if (!gotbox)
                 {
                     spriteBatch.Draw(platformpiece, currentLevel.box, null, new Color(255 - r, 255 - g, 255 - b));
