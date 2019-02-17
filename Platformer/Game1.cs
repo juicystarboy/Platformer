@@ -302,7 +302,7 @@ namespace Platformer
             Rectangle loadbutton = new Rectangle(750, 500, 420, 150);
             Rectangle newbutton = new Rectangle(750, 670, 420, 150);
             Rectangle optionsbutton = new Rectangle(1785, 960, 100, 100);
-            Rectangle exitbutton = new Rectangle(135, 960, 100, 100);
+            Rectangle exitbutton = new Rectangle(35, 960, 100, 100);
             spriteBatch.Draw(platformpiece, loadbutton, new Color(255 - r, 255 - g, 255 - b));
             spriteBatch.Draw(platformpiece, newbutton, new Color(255 - r, 255 - g, 255 - b));
             spriteBatch.Draw(keyboardbutton, optionsbutton, new Color(255 - r, 255 - g, 255 - b));
